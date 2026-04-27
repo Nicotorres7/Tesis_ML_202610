@@ -1,0 +1,120 @@
+{
+  "recall": {
+    "features": [
+      "parcial_2",
+      "delta_p2_p1",
+      "p1_vs_media",
+      "log_eng_p1",
+      "parcial_1_modulos_unicos",
+      "parcial_1_visitas_por_tema",
+      "parcial_1_tiempo_por_visita",
+      "era_encoded"
+    ],
+    "umbral": 0.34,
+    "balanceo": "smoteenn",
+    "impute_zeros": [],
+    "familia": "DT",
+    "set_name": "S11_smoteenn",
+    "criterio": "recall",
+    "cp": "CP2 (semana11)",
+    "params": {
+      "min_samples_split": 15,
+      "min_samples_leaf": 8,
+      "max_depth": 2,
+      "criterion": "entropy",
+      "class_weight": "balanced",
+      "ccp_alpha": 0.02,
+      "random_state": 42
+    },
+    "metricas_loso": {
+      "AUC": 0.8658,
+      "AUC_s": 0.0297,
+      "Recall": 0.9317,
+      "Rec_s": 0.0827,
+      "Prec": 0.5359,
+      "F1": 0.6724,
+      "F1_s": 0.0832
+    },
+    "fecha_entrenamiento": "2026-04-21 19:19",
+    "n_train": 505
+  },
+  "precision": {
+    "features": [
+      "parcial_1",
+      "parcial_2",
+      "engagement_hasta_p1",
+      "parcial_1_modulos_unicos",
+      "era_encoded"
+    ],
+    "umbral": 0.716,
+    "balanceo": "none",
+    "impute_zeros": [],
+    "familia": "XGB",
+    "set_name": "S06_eng_p1",
+    "criterio": "precision",
+    "cp": "CP2 (semana11)",
+    "params": {
+      "subsample": 0.6,
+      "scale_pos_weight": 4,
+      "reg_lambda": 1,
+      "reg_alpha": 0.5,
+      "n_estimators": 150,
+      "min_child_weight": 5,
+      "max_depth": 2,
+      "learning_rate": 0.2,
+      "colsample_bytree": 0.6,
+      "use_label_encoder": false,
+      "eval_metric": "logloss",
+      "verbosity": 0,
+      "random_state": 42
+    },
+    "metricas_loso": {
+      "AUC": 0.9113,
+      "AUC_s": 0.0513,
+      "Recall": 0.7048,
+      "Rec_s": 0.1099,
+      "Prec": 0.8455,
+      "F1": 0.764,
+      "F1_s": 0.0975
+    },
+    "fecha_entrenamiento": "2026-04-21 19:19",
+    "n_train": 505
+  },
+  "f1": {
+    "features": [
+      "parcial_2",
+      "delta_p2_p1",
+      "promedio_ams",
+      "promedio_quices",
+      "era_encoded"
+    ],
+    "umbral": 0.544,
+    "balanceo": "smote",
+    "impute_zeros": [
+      "promedio_ams",
+      "promedio_quices"
+    ],
+    "familia": "LR",
+    "set_name": "S05_smote",
+    "criterio": "f1",
+    "cp": "CP2 (semana11)",
+    "params": {
+      "solver": "saga",
+      "max_iter": 3000,
+      "random_state": 42,
+      "C": 50,
+      "penalty": "l2"
+    },
+    "metricas_loso": {
+      "AUC": 0.9682,
+      "AUC_s": 0.015,
+      "Recall": 0.8862,
+      "Rec_s": 0.0252,
+      "Prec": 0.8183,
+      "F1": 0.8483,
+      "F1_s": 0.0554
+    },
+    "fecha_entrenamiento": "2026-04-21 19:19",
+    "n_train": 505
+  }
+}

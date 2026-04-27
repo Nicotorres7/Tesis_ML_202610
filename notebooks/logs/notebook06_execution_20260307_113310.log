@@ -1,0 +1,567 @@
+
+======================================================================
+=====  NOTEBOOK 06 - MODELADO RIGUROSO v4 (MEJORADO)  =====
+======================================================================
+Log file: logs\notebook06_execution_20260307_113310.log
+Metrics file: logs\notebook06_metrics_20260307_113310.json
+======================================================================
+
+
+======================================================================
+  CARGA Y FILTRADO DE DATOS
+======================================================================
+
+Dataset cargado: 764 filas x 77 columnas
+
+Distribucion inicial de estados:
+      APROBÓ: 413 ( 54.1%)
+    RETIRADO: 164 ( 21.5%)
+     REPROBÓ: 141 ( 18.5%)
+    SIN_NOTA:  46 (  6.0%)
+
+----------------------------------------------------------------------
+Paso 1 - Filtrar estudiantes activos (APROBÓ + REPROBÓ):
+  Estudiantes activos: 554
+    APROBÓ:  413
+    REPROBÓ: 141
+
+----------------------------------------------------------------------
+Paso 2 - Filtrar SOLO estudiantes CON engagement:
+  Estudiantes con engagement: 504
+  Estudiantes sin engagement: 50
+  Porcentaje removido: 9.0%
+
+  Criterios de inclusion:
+    - engagement_hasta_p1 > 0 (horas en plataforma)
+    O parcial_1_visitas > 0 (visitas al contenido)
+    O parcial_1_tiempo_hrs > 0 (tiempo dedicado)
+
+  Razon de exclusion:
+    - Estudiantes con cero engagement en TODOS los indicadores
+    - Sus datos de comportamiento digital son incompletos
+
+----------------------------------------------------------------------
+DATOS FINALES PARA MODELADO:
+  Total estudiantes: 504
+  Distribucion:
+    APROBÓ (target=0):  374 (74.2%)
+    REPROBÓ (target=1): 130 (25.8%)
+  Ratio APROBÓ:REPROBÓ: 2.88:1
+
+----------------------------------------------------------------------
+RESUMEN FILTRADO:
+  Dataset original:      764 estudiantes
+    - RETIRADO/SIN_NOTA: 210
+    - Sin engagement:    50
+  = Datos validos:       504 estudiantes (66.0%)
+
+Estos 504 estudiantes tienen:
+  - Estado academico completo (APROBÓ o REPROBÓ)
+  - Datos de engagement en Bloque Neon
+  - Informacion util para prediccion
+
+======================================================================
+  DEFINICIÓN DE FEATURES
+======================================================================
+
+CHECKPOINT 1 (Semana 6): 11 features
+----------------------------------------------------------------------
+   1. parcial_1
+   2. am_1
+   3. am_2
+   4. quiz_1
+   5. engagement_hasta_p1
+   6. parcial_1_visitas
+   7. parcial_1_temas_unicos
+   8. parcial_1_modulos_unicos
+   9. parcial_1_visitas_por_tema
+  10. parcial_1_tiempo_por_visita
+  11. era_encoded
+
+CHECKPOINT 2 (Semana 11): 25 features
+----------------------------------------------------------------------
+   1. parcial_1
+   2. am_1
+   3. am_2
+   4. quiz_1
+   5. engagement_hasta_p1
+   6. parcial_1_visitas
+   7. parcial_1_temas_unicos
+   8. parcial_1_modulos_unicos
+   9. parcial_1_visitas_por_tema
+  10. parcial_1_tiempo_por_visita
+  11. era_encoded
+  12. parcial_2
+  13. am_3
+  14. am_4
+  15. quiz_2
+  16. quiz_3
+  17. promedio_quices
+  18. promedio_ams
+  19. engagement_hasta_p2
+  20. parcial_2_visitas
+  21. parcial_2_tiempo_hrs
+  22. parcial_2_temas_unicos
+  23. parcial_2_modulos_unicos
+  24. parcial_2_visitas_por_tema
+  25. parcial_2_tiempo_por_visita
+
+======================================================================
+  PREPARACIÓN DE MATRICES X, y
+======================================================================
+
+Valores faltantes en CP1 (antes de imputar):
+  am_1: 179 (35.5%)
+  am_2: 179 (35.5%)
+  quiz_1: 179 (35.5%)
+Datos listos para CP1:
+  X: 504 muestras x 11 features
+  y: APROBÓ=374, REPROBÓ=130
+
+Valores faltantes en CP2 (antes de imputar):
+  am_1: 179 (35.5%)
+  am_2: 179 (35.5%)
+  quiz_1: 179 (35.5%)
+  am_3: 179 (35.5%)
+  am_4: 268 (53.2%)
+  quiz_2: 179 (35.5%)
+  quiz_3: 179 (35.5%)
+  promedio_quices: 179 (35.5%)
+Datos listos para CP2:
+  X: 504 muestras x 25 features
+  y: APROBÓ=374, REPROBÓ=130
+
+======================================================================
+  DEFINICIÓN DE MODELOS E HIPERPARÁMETROS
+======================================================================
+
+MALLAS DE BÚSQUEDA POR MODELO:
+
+>>> Logistic Regression (L1-Lasso)
+  Combinaciones: 6
+  Fits (5-Fold CV): 30
+  Tiempo estimado: 0.2 min
+
+>>> Logistic Regression (L2-Ridge)
+  Combinaciones: 6
+  Fits (5-Fold CV): 30
+  Tiempo estimado: 0.2 min
+
+>>> Decision Tree
+  Combinaciones: 180
+  Fits (5-Fold CV): 900
+  Tiempo estimado: 7.5 min
+
+>>> Random Forest
+  Combinaciones: 72
+  Fits (5-Fold CV): 360
+  Tiempo estimado: 3.0 min
+
+>>> Gradient Boosting
+  Combinaciones: 162
+  Fits (5-Fold CV): 810
+  Tiempo estimado: 6.8 min
+
+----------------------------------------------------------------------
+TOTAL por escenario de balanceo:
+  Fits: 2130
+  Tiempo por balanceo: 17.8 min
+  Tiempo total (3 balanceos): 53.2 min = 0.89 horas
+
+======================================================================
+  DETALLE COMPLETO: PARÁMETROS A PROBAR
+======================================================================
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+MODELO: Logistic Regression (L1-Lasso)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Descripcion: Regresion logistica con penalizacion L1 (Lasso). Selecciona automaticamente variables relevantes.
+
+Parametros a explorar:
+  C:
+    Valores: [0.001, 0.01, 0.1, 1, 10, 100]
+    Cantidad: 6
+
+Estadisticas de busqueda:
+  Total combinaciones: 6
+  Folds CV: 5
+  Total ajustes: 30
+  Tiempo estimado: 0.2 minutos
+
+----------------------------------------------------------------------
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+MODELO: Logistic Regression (L2-Ridge)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Descripcion: Regresion logistica con penalizacion L2 (Ridge). Encoge coeficientes sin eliminarlos.
+
+Parametros a explorar:
+  C:
+    Valores: [0.001, 0.01, 0.1, 1, 10, 100]
+    Cantidad: 6
+
+Estadisticas de busqueda:
+  Total combinaciones: 6
+  Folds CV: 5
+  Total ajustes: 30
+  Tiempo estimado: 0.2 minutos
+
+----------------------------------------------------------------------
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+MODELO: Decision Tree
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Descripcion: Arbol de decision con poda. Muy interpretable.
+
+Parametros a explorar:
+  max_depth:
+    Valores: [3, 5, 7, 10, 15]
+    Cantidad: 5
+
+  min_samples_leaf:
+    Valores: [2, 5, 10]
+    Cantidad: 3
+
+  min_samples_split:
+    Valores: [5, 10]
+    Cantidad: 2
+
+  criterion:
+    Valores: ['gini', 'entropy']
+    Cantidad: 2
+
+  ccp_alpha:
+    Valores: [0.0, 0.005, 0.01]
+    Cantidad: 3
+
+Estadisticas de busqueda:
+  Total combinaciones: 180
+  Folds CV: 5
+  Total ajustes: 900
+  Tiempo estimado: 7.5 minutos
+
+----------------------------------------------------------------------
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+MODELO: Random Forest
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Descripcion: Bosque aleatorio. Robusto y eficiente.
+
+Parametros a explorar:
+  n_estimators:
+    Valores: [100, 300, 500]
+    Cantidad: 3
+
+  max_depth:
+    Valores: [5, 10, 15]
+    Cantidad: 3
+
+  min_samples_leaf:
+    Valores: [2, 5]
+    Cantidad: 2
+
+  min_samples_split:
+    Valores: [5, 10]
+    Cantidad: 2
+
+  max_features:
+    Valores: ['sqrt', 'log2']
+    Cantidad: 2
+
+Estadisticas de busqueda:
+  Total combinaciones: 72
+  Folds CV: 5
+  Total ajustes: 360
+  Tiempo estimado: 3.0 minutos
+
+----------------------------------------------------------------------
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+MODELO: Gradient Boosting
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Descripcion: Gradient Boosting. Generalmente el mas preciso.
+
+Parametros a explorar:
+  n_estimators:
+    Valores: [100, 300, 500]
+    Cantidad: 3
+
+  max_depth:
+    Valores: [3, 5, 7]
+    Cantidad: 3
+
+  learning_rate:
+    Valores: [0.01, 0.05, 0.1]
+    Cantidad: 3
+
+  min_samples_leaf:
+    Valores: [2, 5]
+    Cantidad: 2
+
+  subsample:
+    Valores: [0.7, 0.9, 1.0]
+    Cantidad: 3
+
+Estadisticas de busqueda:
+  Total combinaciones: 162
+  Folds CV: 5
+  Total ajustes: 810
+  Tiempo estimado: 6.8 minutos
+
+----------------------------------------------------------------------
+
+
+======================================================================
+VALIDACIÓN PRE-EJECUCIÓN
+======================================================================
+
+Validacion de dimensiones:
+  X_cp1: (504, 11) OK
+  y_cp1: (504,) OK
+  X_cp2: (504, 25) OK
+  y_cp2: (504,) OK
+
+No hay valores faltantes: OK
+
+  CP1: 25.8% clase negativa (REPROBÓ) OK
+  CP2: 25.8% clase negativa (REPROBÓ) OK
+
+Todas las features estan presentes: OK
+
+Validacion completada. Listo para ejecutar.
+
+
+======================================================================
+  CHECKPOINT 1 - PREDICCIÓN TEMPRANA (Semana 6)
+======================================================================
+
+Features utilizadas (11):
+  - parcial_1
+  - am_1
+  - am_2
+  - quiz_1
+  - engagement_hasta_p1
+  - parcial_1_visitas
+  - parcial_1_temas_unicos
+  - parcial_1_modulos_unicos
+  - parcial_1_visitas_por_tema
+  - parcial_1_tiempo_por_visita
+  - era_encoded
+
+Datos: 504 estudiantes
+Target: {0: 374, 1: 130}
+
+======================================================================
+CP1 - RONDA 1: SIN BALANCEO (Baseline)
+======================================================================
+
+
+----------------------------------------------------------------------
+[CP1] Logistic Regression (L1-Lasso) | Balanceo: Ninguno
+----------------------------------------------------------------------
+Tamano de grid: 6 combinaciones x 5 folds = 30 ajustes
+Datos: 504 muestras, 11 features
+Distribucion de clases: {0: np.int64(374), 1: np.int64(130)}
+Hora inicio: 12:06:30
+
+Iniciando GridSearchCV...
+
+
+OK Completado en 3.5s
+  Mejor AUC (GridSearch): 0.8585
+
+  Mejores hiperparametros encontrados:
+                       C = 1
+
+  Resultados de Cross-Validation (5-Fold):
+    Accuracy:  0.8155 +- 0.0388
+    Precision: 0.6903 +- 0.1129
+    Recall:    0.5308 +- 0.0746
+    F1-Score:  0.5978 +- 0.0822
+    ROC-AUC:   0.8585 +- 0.0398
+
+
+======================================================================
+PROGRESO: [CP1] [Sin Balanceo]
+  Completado: 1/5 modelos (20%)
+  Tiempo transcurrido: 0.1 min
+  Tiempo promedio/modelo: 3.6s
+  Tiempo estimado restante: 0.2 min
+  ETA: 12:06:48
+======================================================================
+
+
+----------------------------------------------------------------------
+[CP1] Logistic Regression (L2-Ridge) | Balanceo: Ninguno
+----------------------------------------------------------------------
+Tamano de grid: 6 combinaciones x 5 folds = 30 ajustes
+Datos: 504 muestras, 11 features
+Distribucion de clases: {0: np.int64(374), 1: np.int64(130)}
+Hora inicio: 12:06:34
+
+Iniciando GridSearchCV...
+
+
+OK Completado en 0.0s
+  Mejor AUC (GridSearch): 0.8579
+
+  Mejores hiperparametros encontrados:
+                       C = 1
+
+  Resultados de Cross-Validation (5-Fold):
+    Accuracy:  0.8115 +- 0.0376
+    Precision: 0.6886 +- 0.1184
+    Recall:    0.5077 +- 0.0821
+    F1-Score:  0.5810 +- 0.0854
+    ROC-AUC:   0.8579 +- 0.0409
+
+
+======================================================================
+PROGRESO: [CP1] [Sin Balanceo]
+  Completado: 2/5 modelos (40%)
+  Tiempo transcurrido: 0.1 min
+  Tiempo promedio/modelo: 1.8s
+  Tiempo estimado restante: 0.1 min
+  ETA: 12:06:40
+======================================================================
+
+
+----------------------------------------------------------------------
+[CP1] Decision Tree | Balanceo: Ninguno
+----------------------------------------------------------------------
+Tamano de grid: 180 combinaciones x 5 folds = 900 ajustes
+Datos: 504 muestras, 11 features
+Distribucion de clases: {0: np.int64(374), 1: np.int64(130)}
+Hora inicio: 12:06:34
+
+Iniciando GridSearchCV...
+
+
+OK Completado en 1.1s
+  Mejor AUC (GridSearch): 0.8047
+
+  Mejores hiperparametros encontrados:
+               ccp_alpha = 0.01
+               criterion = entropy
+               max_depth = 3
+        min_samples_leaf = 10
+       min_samples_split = 5
+
+  Resultados de Cross-Validation (5-Fold):
+    Accuracy:  0.7719 +- 0.0238
+    Precision: 0.6842 +- 0.1758
+    Recall:    0.2846 +- 0.1104
+    F1-Score:  0.3787 +- 0.1148
+    ROC-AUC:   0.8047 +- 0.0296
+
+
+======================================================================
+PROGRESO: [CP1] [Sin Balanceo]
+  Completado: 3/5 modelos (60%)
+  Tiempo transcurrido: 0.1 min
+  Tiempo promedio/modelo: 1.6s
+  Tiempo estimado restante: 0.1 min
+  ETA: 12:06:38
+======================================================================
+
+
+----------------------------------------------------------------------
+[CP1] Random Forest | Balanceo: Ninguno
+----------------------------------------------------------------------
+Tamano de grid: 72 combinaciones x 5 folds = 360 ajustes
+Datos: 504 muestras, 11 features
+Distribucion de clases: {0: np.int64(374), 1: np.int64(130)}
+Hora inicio: 12:06:35
+
+Iniciando GridSearchCV...
+
+
+OK Completado en 18.4s
+  Mejor AUC (GridSearch): 0.8373
+
+  Mejores hiperparametros encontrados:
+               max_depth = 5
+            max_features = sqrt
+        min_samples_leaf = 2
+       min_samples_split = 10
+            n_estimators = 100
+
+  Resultados de Cross-Validation (5-Fold):
+    Accuracy:  0.7897 +- 0.0236
+    Precision: 0.7010 +- 0.0958
+    Recall:    0.3385 +- 0.0857
+    F1-Score:  0.4480 +- 0.0875
+    ROC-AUC:   0.8373 +- 0.0382
+
+
+======================================================================
+PROGRESO: [CP1] [Sin Balanceo]
+  Completado: 4/5 modelos (80%)
+  Tiempo transcurrido: 0.4 min
+  Tiempo promedio/modelo: 6.0s
+  Tiempo estimado restante: 0.1 min
+  ETA: 12:07:00
+======================================================================
+
+
+----------------------------------------------------------------------
+[CP1] Gradient Boosting | Balanceo: Ninguno
+----------------------------------------------------------------------
+Tamano de grid: 162 combinaciones x 5 folds = 810 ajustes
+Datos: 504 muestras, 11 features
+Distribucion de clases: {0: np.int64(374), 1: np.int64(130)}
+Hora inicio: 12:06:54
+
+Iniciando GridSearchCV...
+
+
+OK Completado en 54.7s
+  Mejor AUC (GridSearch): 0.8394
+
+  Mejores hiperparametros encontrados:
+           learning_rate = 0.01
+               max_depth = 3
+        min_samples_leaf = 2
+            n_estimators = 300
+               subsample = 0.9
+
+  Resultados de Cross-Validation (5-Fold):
+    Accuracy:  0.8015 +- 0.0254
+    Precision: 0.6675 +- 0.0797
+    Recall:    0.4692 +- 0.0662
+    F1-Score:  0.5484 +- 0.0604
+    ROC-AUC:   0.8394 +- 0.0317
+
+
+======================================================================
+PROGRESO: [CP1] [Sin Balanceo]
+  Completado: 5/5 modelos (100%)
+  Tiempo transcurrido: 1.3 min
+  Tiempo promedio/modelo: 16.0s
+  Tiempo estimado restante: 0.0 min
+  ETA: 12:07:50
+======================================================================
+
+
+----------------------------------------------------------------------
+Checkpoint guardado: logs\CP1_nobal_results.csv
+  5 modelos registrados
+  Mejor AUC: 0.8585
+----------------------------------------------------------------------
+
+
+======================================================================
+CP1 - RONDA 2: CON SMOTE
+  (Synthetic Minority Over-sampling Technique)
+======================================================================
+
+
+----------------------------------------------------------------------
+[CP1] Logistic Regression (L1-Lasso) | Balanceo: SMOTE
+----------------------------------------------------------------------
+Tamano de grid: 6 combinaciones x 5 folds = 30 ajustes
+Datos: 504 muestras, 11 features
+Distribucion de clases: {0: np.int64(374), 1: np.int64(130)}
+Hora inicio: 12:07:50
+
