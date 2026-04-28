@@ -192,7 +192,9 @@ def render_models():
     tabs = st.tabs([f"{CHECKPOINTS[key]['label']} - {CHECKPOINTS[key]['title']}" for key in CHECKPOINTS])
     for tab, checkpoint in zip(tabs, CHECKPOINTS):
         with tab:
+            st.markdown("### Modelos disponibles")
             cols = st.columns(3)
+            selected_criterion = None
             for col, card in zip(cols, metadata_cards[checkpoint]):
                 metrics = card["metrics"]
                 with col:
@@ -211,22 +213,52 @@ def render_models():
                         """,
                         unsafe_allow_html=True,
                     )
+                    if st.button("Ver detalles", key=f"details_{checkpoint}_{card['criterion']}", width="stretch"):
+                        st.session_state[f"model_details_{checkpoint}"] = card["criterion"]
+                        st.rerun()
                     if st.button("Usar modelo", key=f"use_{checkpoint}_{card['criterion']}", width="stretch"):
                         st.session_state.pending_model_selection = (checkpoint, card["criterion"])
                         st.rerun()
-                    with st.expander("Ver detalles"):
-                        if card["image_main"].exists():
-                            st.image(str(card["image_main"].resolve()), width="stretch", caption="Comparativa del modelo")
-                        if card["image_threshold"].exists():
-                            st.image(str(card["image_threshold"].resolve()), width="stretch", caption="Analisis de umbral")
-                        if card["image_comparison"].exists():
-                            st.image(str(card["image_comparison"].resolve()), width="stretch", caption="Comparacion general")
-                        st.json(
-                            {
-                                "features": [feature_display_name(name) for name in card["features"]],
-                                "metricas_loso": metrics,
-                            }
-                        )
+
+            st.divider()
+
+            details_key = f"model_details_{checkpoint}"
+            if details_key in st.session_state and st.session_state[details_key]:
+                selected_criterion = st.session_state[details_key]
+                selected_card = next(card for card in metadata_cards[checkpoint] if card["criterion"] == selected_criterion)
+                metrics = selected_card["metrics"]
+
+                st.markdown(f"### Detalles - {selected_card['label']}")
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("#### Métricas LOSO")
+                    metric_cols = st.columns(4)
+                    for idx, (metric_name, metric_value) in enumerate(metrics.items()):
+                        with metric_cols[idx % 4]:
+                            st.metric(metric_name, f"{metric_value:.3f}")
+
+                with col2:
+                    st.markdown("#### Información del modelo")
+                    st.write(f"**Familia:** {selected_card['family']}")
+                    st.write(f"**Umbral:** {selected_card['threshold']:.3f}")
+                    st.write(f"**Features utilizados:** {len(selected_card['features'])}")
+
+                st.markdown("#### Features")
+                features_display = [feature_display_name(name) for name in selected_card["features"]]
+                st.write(", ".join(features_display))
+
+                st.markdown("#### Gráficas")
+                graphs_cols = st.columns(3)
+                if selected_card["image_main"].exists():
+                    with graphs_cols[0]:
+                        st.image(str(selected_card["image_main"].resolve()), width="stretch", caption="Comparativa del modelo")
+                if selected_card["image_threshold"].exists():
+                    with graphs_cols[1]:
+                        st.image(str(selected_card["image_threshold"].resolve()), width="stretch", caption="Análisis de umbral")
+                if selected_card["image_comparison"].exists():
+                    with graphs_cols[2]:
+                        st.image(str(selected_card["image_comparison"].resolve()), width="stretch", caption="Comparación general")
 
 
 def render_upload_predict():
