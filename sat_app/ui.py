@@ -42,7 +42,7 @@ from sat_app.retraining import RetrainConfig, run_retraining, save_retrained_mod
 def run_app():
     st.set_page_config(page_title="SAT Uniandes", page_icon=":bar_chart:", layout="wide")
     _init_state()
-    st.markdown(build_base_style(st.session_state.theme_mode), unsafe_allow_html=True)
+    st.markdown(build_base_style("Claro"), unsafe_allow_html=True)
     if st.session_state.pending_model_selection is not None:
         pending_checkpoint, pending_criterion = st.session_state.pending_model_selection
         st.session_state.sidebar_selected_checkpoint = pending_checkpoint
@@ -54,10 +54,6 @@ def run_app():
     with st.sidebar:
         st.markdown("## SAT Uniandes")
         st.caption("Sistema de Alerta Temprana para docentes")
-        theme_mode = st.segmented_control("Tema", options=["Auto", "Claro", "Oscuro"], default=st.session_state.theme_mode)
-        if theme_mode and theme_mode != st.session_state.theme_mode:
-            st.session_state.theme_mode = theme_mode
-            st.rerun()
         page = st.radio(
             "Navegacion",
             ["Inicio", "Modelos", "Carga y prediccion", "Dashboard", "Estadisticas", "Exportacion", "Gestion de modelos"],
@@ -104,7 +100,6 @@ def _init_state():
         "sidebar_selected_checkpoint": "cp1",
         "sidebar_selected_criterion": "f1",
         "pending_model_selection": None,
-        "theme_mode": "Auto",
         "raw_df": None,
         "mapped_df": None,
         "mapping": {},
@@ -122,31 +117,24 @@ def _init_state():
 
 
 def _theme() -> str:
-    return st.session_state.theme_mode
+    return "Claro"
 
 
 def _chart_theme() -> str:
-    return "Claro" if st.session_state.theme_mode == "Auto" else st.session_state.theme_mode
+    return "Claro"
 
 
 def _effective_theme_name() -> str:
-    return "Claro" if st.session_state.theme_mode == "Auto" else st.session_state.theme_mode
+    return "Claro"
 
 
 def _criterion_card_style(criterion: str) -> tuple[str, str, str]:
-    theme = THEMES[_effective_theme_name()]
-    if _effective_theme_name() == "Oscuro":
-        palette = {
-            "precision": ("rgba(127,29,29,0.28)", "#7F1D1D", theme["text"]),
-            "f1": ("rgba(29,78,216,0.26)", "#1D4ED8", theme["text"]),
-            "recall": ("rgba(6,78,59,0.28)", "#065F46", theme["text"]),
-        }
-    else:
-        palette = {
-            "precision": ("#FDECEC", "#FCA5A5", theme["text"]),
-            "f1": ("#E8F0FE", "#93C5FD", theme["text"]),
-            "recall": ("#EAF7EF", "#86EFAC", theme["text"]),
-        }
+    theme = THEMES["Claro"]
+    palette = {
+        "precision": ("#FDECEC", "#FCA5A5", theme["text"]),
+        "f1": ("#E8F0FE", "#93C5FD", theme["text"]),
+        "recall": ("#EAF7EF", "#86EFAC", theme["text"]),
+    }
     return palette[criterion]
 
 
