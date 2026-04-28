@@ -131,9 +131,9 @@ def _effective_theme_name() -> str:
 def _criterion_card_style(criterion: str) -> tuple[str, str, str]:
     theme = THEMES["Claro"]
     palette = {
-        "precision": ("#FDECEC", "#FCA5A5", theme["text"]),
-        "f1": ("#E8F0FE", "#93C5FD", theme["text"]),
-        "recall": ("#EAF7EF", "#86EFAC", theme["text"]),
+        "precision": ("#EFF6FF", "#0369A1", theme["text"]),
+        "f1": ("#E0F2FE", "#0284C7", theme["text"]),
+        "recall": ("#F0F9FF", "#06B6D4", theme["text"]),
     }
     return palette[criterion]
 
