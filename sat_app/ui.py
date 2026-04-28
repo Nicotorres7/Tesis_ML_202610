@@ -272,11 +272,12 @@ def render_models():
 def render_upload_predict():
     st.markdown("## Carga de datos y prediccion")
     step = st.radio(
-        "Instrucciones",
+        "",
         [1, 2, 3],
         horizontal=True,
         key="upload_step",
-        format_func=lambda n: ["1. Carga tus datos", "2. Sigue al paso de mapeo", "3. Confirma tu base y sigue al dashboard"][n - 1]
+        format_func=lambda n: ["1. Carga tus datos", "2. Sigue al paso de mapeo", "3. Confirma tu base y sigue al dashboard"][n - 1],
+        label_visibility="collapsed"
     )
     checkpoint = st.session_state.selected_checkpoint
     criterion = st.session_state.selected_criterion
