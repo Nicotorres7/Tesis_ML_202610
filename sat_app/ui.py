@@ -464,6 +464,15 @@ def render_dashboard():
 
         table_data = filtered.assign(Seleccionar=False)[["Seleccionar", "student_key", "student_label", "probabilidad", "nivel_riesgo"]].copy()
 
+        def get_bar_color(risk_level: str) -> str:
+            colors = {"ALTO": "#EF4444", "MEDIO": "#FBBF24", "BAJO": "#10B981"}
+            return colors.get(risk_level, "#94A3B8")
+
+        bar_columns = {}
+        for idx, row in table_data.iterrows():
+            bar_color = get_bar_color(row["nivel_riesgo"])
+            bar_columns[idx] = bar_color
+
         edited = st.data_editor(
             table_data,
             hide_index=True,

@@ -523,15 +523,21 @@ def build_base_style(theme_name: str) -> str:
         height: 30px !important;
     }}
 
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child:contains("ALTO")) [role="progressbar"] > div {{
+    /* Progress bars for ALTO risk */
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr td:nth-last-child(1):contains("ALTO") ~ td [role="progressbar"] > div,
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("ALTO")) [role="progressbar"] > div {{
         background-color: #EF4444 !important;
     }}
 
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child:contains("MEDIO")) [role="progressbar"] > div {{
+    /* Progress bars for MEDIO risk */
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr td:nth-last-child(1):contains("MEDIO") ~ td [role="progressbar"] > div,
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("MEDIO")) [role="progressbar"] > div {{
         background-color: #FBBF24 !important;
     }}
 
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child:contains("BAJO")) [role="progressbar"] > div {{
+    /* Progress bars for BAJO risk */
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr td:nth-last-child(1):contains("BAJO") ~ td [role="progressbar"] > div,
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("BAJO")) [role="progressbar"] > div {{
         background-color: #10B981 !important;
     }}
 </style>
