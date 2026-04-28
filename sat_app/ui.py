@@ -271,7 +271,13 @@ def render_models():
 
 def render_upload_predict():
     st.markdown("## Carga de datos y prediccion")
-    step = st.radio("Paso", [1, 2, 3], horizontal=True, key="upload_step", format_func=lambda n: ["Cargar", "Mapear", "Confirmar"][n - 1])
+    step = st.radio(
+        "Instrucciones",
+        [1, 2, 3],
+        horizontal=True,
+        key="upload_step",
+        format_func=lambda n: ["1. Carga tus datos", "2. Sigue al paso de mapeo", "3. Confirma tu base y sigue al dashboard"][n - 1]
+    )
     checkpoint = st.session_state.selected_checkpoint
     criterion = st.session_state.selected_criterion
     bundle = load_bundle(checkpoint, criterion)
