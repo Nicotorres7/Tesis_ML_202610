@@ -518,5 +518,17 @@ def build_base_style(theme_name: str) -> str:
         border-radius: 14px;
         overflow: hidden;
     }}
+
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has-text("ALTO") [role="progressbar"] > div {{
+        background-color: #EF4444 !important;
+    }}
+
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has-text("MEDIO") [role="progressbar"] > div {{
+        background-color: #FBBF24 !important;
+    }}
+
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has-text("BAJO") [role="progressbar"] > div {{
+        background-color: #10B981 !important;
+    }}
 </style>
 """

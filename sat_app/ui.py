@@ -459,10 +459,13 @@ def render_dashboard():
 
     dashboard_tab, detail_tab = st.tabs(["Priorizacion", "Detalle del caso"])
     with dashboard_tab:
-        st.markdown("### Cola priorizada")
+        st.markdown("### Estudiantes priorizados")
         st.caption("Selecciona una fila para abrir el detalle y entender los factores del caso.")
+
+        table_data = filtered.assign(Seleccionar=False)[["Seleccionar", "student_key", "student_label", "probabilidad", "nivel_riesgo"]].copy()
+
         edited = st.data_editor(
-            filtered.assign(Seleccionar=False)[["Seleccionar", "student_key", "student_label", "probabilidad", "nivel_riesgo"]],
+            table_data,
             hide_index=True,
             width="stretch",
             num_rows="fixed",
@@ -470,7 +473,12 @@ def render_dashboard():
             column_config={
                 "student_key": "ID",
                 "student_label": "Nombre",
-                "probabilidad": st.column_config.ProgressColumn("Probabilidad", min_value=0.0, max_value=1.0),
+                "probabilidad": st.column_config.ProgressColumn(
+                    "Probabilidad",
+                    min_value=0.0,
+                    max_value=1.0,
+                    format="%.1%"
+                ),
                 "nivel_riesgo": "Categoria",
             },
             key="dashboard_table",
