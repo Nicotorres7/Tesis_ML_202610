@@ -218,7 +218,11 @@ def render_models():
                             st.session_state[f"model_details_{checkpoint}"] = card["criterion"]
                             st.rerun()
                     with col_btn2:
-                        if st.button("Usar modelo", key=f"use_{checkpoint}_{card['criterion']}", width="stretch"):
+                        is_selected = (st.session_state.selected_checkpoint == checkpoint and
+                                      st.session_state.selected_criterion == card["criterion"])
+                        btn_style = "background-color: #E5E7EB; color: #1F2937;" if is_selected else ""
+                        btn_text = "✓ Modelo activo" if is_selected else "Usar modelo"
+                        if st.button(btn_text, key=f"use_{checkpoint}_{card['criterion']}", width="stretch"):
                             st.session_state.pending_model_selection = (checkpoint, card["criterion"])
                             st.rerun()
 

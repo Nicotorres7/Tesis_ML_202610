@@ -540,5 +540,15 @@ def build_base_style(theme_name: str) -> str:
     [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("BAJO")) [role="progressbar"] > div {{
         background-color: #10B981 !important;
     }}
+
+    /* Active model button styling */
+    button:has-text("✓ Modelo activo") {{
+        background-color: #E5E7EB !important;
+        color: #1F2937 !important;
+    }}
+
+    button:has-text("✓ Modelo activo"):hover {{
+        background-color: #D1D5DB !important;
+    }}
 </style>
 """
