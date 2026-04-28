@@ -194,7 +194,6 @@ def render_models():
         with tab:
             st.markdown("### Modelos disponibles")
             cols = st.columns(3)
-            selected_criterion = None
             for col, card in zip(cols, metadata_cards[checkpoint]):
                 metrics = card["metrics"]
                 with col:
@@ -213,12 +212,15 @@ def render_models():
                         """,
                         unsafe_allow_html=True,
                     )
-                    if st.button("Ver detalles", key=f"details_{checkpoint}_{card['criterion']}", width="stretch"):
-                        st.session_state[f"model_details_{checkpoint}"] = card["criterion"]
-                        st.rerun()
-                    if st.button("Usar modelo", key=f"use_{checkpoint}_{card['criterion']}", width="stretch"):
-                        st.session_state.pending_model_selection = (checkpoint, card["criterion"])
-                        st.rerun()
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        if st.button("Ver detalles", key=f"details_{checkpoint}_{card['criterion']}", width="stretch"):
+                            st.session_state[f"model_details_{checkpoint}"] = card["criterion"]
+                            st.rerun()
+                    with col_btn2:
+                        if st.button("Usar modelo", key=f"use_{checkpoint}_{card['criterion']}", width="stretch"):
+                            st.session_state.pending_model_selection = (checkpoint, card["criterion"])
+                            st.rerun()
 
             st.divider()
 
@@ -227,6 +229,7 @@ def render_models():
                 selected_criterion = st.session_state[details_key]
                 selected_card = next(card for card in metadata_cards[checkpoint] if card["criterion"] == selected_criterion)
                 metrics = selected_card["metrics"]
+                bg_color, border_color, text_color = _criterion_card_style(selected_card["criterion"])
 
                 st.markdown(f"### Detalles - {selected_card['label']}")
 
@@ -259,6 +262,11 @@ def render_models():
                 if selected_card["image_comparison"].exists():
                     with graphs_cols[2]:
                         st.image(str(selected_card["image_comparison"].resolve()), width="stretch", caption="Comparación general")
+
+                st.divider()
+                if st.button("Usar este modelo", key=f"use_details_{checkpoint}_{selected_criterion}", width="stretch"):
+                    st.session_state.pending_model_selection = (checkpoint, selected_criterion)
+                    st.rerun()
 
 
 def render_upload_predict():
