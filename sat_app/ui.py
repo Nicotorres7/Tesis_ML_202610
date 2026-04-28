@@ -252,16 +252,12 @@ def render_models():
                 st.write(", ".join(features_display))
 
                 st.markdown("#### Gráficas")
-                graphs_cols = st.columns(3)
                 if selected_card["image_main"].exists():
-                    with graphs_cols[0]:
-                        st.image(str(selected_card["image_main"].resolve()), width="stretch", caption="Comparativa del modelo")
+                    st.image(str(selected_card["image_main"].resolve()), width="stretch", caption="Comparativa del modelo")
                 if selected_card["image_threshold"].exists():
-                    with graphs_cols[1]:
-                        st.image(str(selected_card["image_threshold"].resolve()), width="stretch", caption="Análisis de umbral")
+                    st.image(str(selected_card["image_threshold"].resolve()), width="stretch", caption="Análisis de umbral")
                 if selected_card["image_comparison"].exists():
-                    with graphs_cols[2]:
-                        st.image(str(selected_card["image_comparison"].resolve()), width="stretch", caption="Comparación general")
+                    st.image(str(selected_card["image_comparison"].resolve()), width="stretch", caption="Comparación general")
 
                 st.divider()
                 if st.button("Usar este modelo", key=f"use_details_{checkpoint}_{selected_criterion}", width="stretch"):
