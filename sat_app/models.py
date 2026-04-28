@@ -191,7 +191,7 @@ def top_student_factors(bundle: dict[str, Any], df_features: pd.DataFrame, index
     top["magnitud"] = top["impacto"].abs()
     top["sentido"] = np.where(
         top["impacto"] >= 0,
-        "Empuja hacia mayor riesgo",
+        "Lleva a un mayor riesgo",
         "Ayuda a contener el riesgo",
     )
     return top
