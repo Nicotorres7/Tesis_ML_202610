@@ -477,7 +477,7 @@ def render_dashboard():
                     "Probabilidad",
                     min_value=0.0,
                     max_value=1.0,
-                    format="%.1%"
+                    format=""
                 ),
                 "nivel_riesgo": "Categoria",
             },

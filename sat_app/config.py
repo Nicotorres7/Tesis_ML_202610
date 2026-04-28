@@ -519,15 +519,19 @@ def build_base_style(theme_name: str) -> str:
         overflow: hidden;
     }}
 
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has-text("ALTO") [role="progressbar"] > div {{
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr [role="progressbar"] {{
+        height: 30px !important;
+    }}
+
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child:contains("ALTO")) [role="progressbar"] > div {{
         background-color: #EF4444 !important;
     }}
 
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has-text("MEDIO") [role="progressbar"] > div {{
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child:contains("MEDIO")) [role="progressbar"] > div {{
         background-color: #FBBF24 !important;
     }}
 
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has-text("BAJO") [role="progressbar"] > div {{
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child:contains("BAJO")) [role="progressbar"] > div {{
         background-color: #10B981 !important;
     }}
 </style>
