@@ -161,12 +161,18 @@ def render_home():
         <style>
             .sat-hero-title {
                 color: white !important;
-                margin: 0;
+                margin: 0 !important;
+            }
+            div.sat-hero h1 {
+                color: white !important;
+            }
+            .sat-hero-title, .sat-hero h1 {
+                color: #FFFFFF !important;
             }
         </style>
         <div class="sat-hero">
             <div class="sat-badge">MVP conectado a modelos reales</div>
-            <h1 class="sat-hero-title">Sistema de Alerta Temprana</h1>
+            <h1 class="sat-hero-title" style="color: white !important;">Sistema de Alerta Temprana</h1>
             <p style="font-size:1.05rem;max-width:760px;">
                 Predice riesgo academico en semana 6 y semana 11, prioriza estudiantes y exporta reportes
                 listos para seguimiento docente.
@@ -511,36 +517,35 @@ def render_dashboard():
         )
 
         st.markdown("""
-        <script>
-        setTimeout(() => {
-            const riskColors = {
-                'ALTO': '#EF4444',
-                'MEDIO': '#FBBF24',
-                'BAJO': '#10B981'
-            };
+        <style>
+        /* Color progress bars for ALTO risk */
+        [data-testid="stDataFrame"] table tbody tr td:last-child:has-text("ALTO") ~ td [role="progressbar"] > div {
+            background-color: #EF4444 !important;
+        }
 
-            const table = document.querySelector('[data-testid="stDataFrame"] table');
-            if (table) {
-                const rows = table.querySelectorAll('tbody tr');
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length > 0) {
-                        const lastCell = cells[cells.length - 1];
-                        const riskLevel = lastCell.textContent.trim();
-                        const color = riskColors[riskLevel] || '#94A3B8';
+        /* Color progress bars for MEDIO risk */
+        [data-testid="stDataFrame"] table tbody tr td:last-child:has-text("MEDIO") ~ td [role="progressbar"] > div {
+            background-color: #FBBF24 !important;
+        }
 
-                        const progressBar = row.querySelector('[role="progressbar"]');
-                        if (progressBar) {
-                            const barDiv = progressBar.querySelector('div');
-                            if (barDiv) {
-                                barDiv.style.backgroundColor = color;
-                            }
-                        }
-                    }
-                });
-            }
-        }, 100);
-        </script>
+        /* Color progress bars for BAJO risk */
+        [data-testid="stDataFrame"] table tbody tr td:last-child:has-text("BAJO") ~ td [role="progressbar"] > div {
+            background-color: #10B981 !important;
+        }
+
+        /* Alternative approach: color all progress bars in rows with ALTO */
+        [data-testid="stDataFrame"] table tbody tr:has(td:contains("ALTO")) [role="progressbar"] > div {
+            background-color: #EF4444 !important;
+        }
+
+        [data-testid="stDataFrame"] table tbody tr:has(td:contains("MEDIO")) [role="progressbar"] > div {
+            background-color: #FBBF24 !important;
+        }
+
+        [data-testid="stDataFrame"] table tbody tr:has(td:contains("BAJO")) [role="progressbar"] > div {
+            background-color: #10B981 !important;
+        }
+        </style>
         """, unsafe_allow_html=True)
 
         selected_rows = edited[edited["Seleccionar"]]
