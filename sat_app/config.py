@@ -526,21 +526,27 @@ def build_base_style(theme_name: str) -> str:
         height: 30px !important;
     }}
 
-    /* Progress bars for ALTO risk */
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr td:nth-last-child(1):contains("ALTO") ~ td [role="progressbar"] > div,
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("ALTO")) [role="progressbar"] > div {{
+    /* Default progress bar color */
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr [role="progressbar"] > div {{
+        background-color: #94A3B8 !important;
+    }}
+
+    /* Color by risk level - using nth-child selectors */
+    /* Row with ALTO in last column */
+    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child) [role="progressbar"] > div {{
         background-color: #EF4444 !important;
     }}
 
-    /* Progress bars for MEDIO risk */
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr td:nth-last-child(1):contains("MEDIO") ~ td [role="progressbar"] > div,
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("MEDIO")) [role="progressbar"] > div {{
+    /* Specific selectors for each risk level based on cell content */
+    [role="progressbar"][data-risk="ALTO"] > div {{
+        background-color: #EF4444 !important;
+    }}
+
+    [role="progressbar"][data-risk="MEDIO"] > div {{
         background-color: #FBBF24 !important;
     }}
 
-    /* Progress bars for BAJO risk */
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr td:nth-last-child(1):contains("BAJO") ~ td [role="progressbar"] > div,
-    [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(> td:last-child:contains("BAJO")) [role="progressbar"] > div {{
+    [role="progressbar"][data-risk="BAJO"] > div {{
         background-color: #10B981 !important;
     }}
 

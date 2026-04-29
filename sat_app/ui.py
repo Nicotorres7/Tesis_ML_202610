@@ -509,6 +509,40 @@ def render_dashboard():
             },
             key="dashboard_table",
         )
+
+        st.markdown("""
+        <script>
+        setTimeout(() => {
+            const riskColors = {
+                'ALTO': '#EF4444',
+                'MEDIO': '#FBBF24',
+                'BAJO': '#10B981'
+            };
+
+            const table = document.querySelector('[data-testid="stDataFrame"] table');
+            if (table) {
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length > 0) {
+                        const lastCell = cells[cells.length - 1];
+                        const riskLevel = lastCell.textContent.trim();
+                        const color = riskColors[riskLevel] || '#94A3B8';
+
+                        const progressBar = row.querySelector('[role="progressbar"]');
+                        if (progressBar) {
+                            const barDiv = progressBar.querySelector('div');
+                            if (barDiv) {
+                                barDiv.style.backgroundColor = color;
+                            }
+                        }
+                    }
+                });
+            }
+        }, 100);
+        </script>
+        """, unsafe_allow_html=True)
+
         selected_rows = edited[edited["Seleccionar"]]
     if not selected_rows.empty:
         st.session_state.selected_student = selected_rows.iloc[0]["student_key"]
