@@ -161,21 +161,12 @@ def render_home():
         """
         <div class="sat-hero">
             <div class="sat-badge">MVP conectado a modelos reales</div>
-            <h1 id="sat-hero-title">Sistema de Alerta Temprana</h1>
-            <p style="font-size:1.05rem;max-width:760px;">
+            <h1 style="margin:0;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.1);">Sistema de Alerta Temprana</h1>
+            <p style="font-size:1.05rem;max-width:760px;color:white;">
                 Predice riesgo academico en semana 6 y semana 11, prioriza estudiantes y exporta reportes
                 listos para seguimiento docente.
             </p>
         </div>
-        <script>
-            setTimeout(() => {
-                const title = document.getElementById('sat-hero-title');
-                if (title) {
-                    title.style.color = 'white';
-                    title.style.margin = '0';
-                }
-            }, 100);
-        </script>
         """,
         unsafe_allow_html=True,
     )
@@ -489,10 +480,18 @@ def render_dashboard():
             colors = {"ALTO": "#EF4444", "MEDIO": "#FBBF24", "BAJO": "#10B981"}
             return colors.get(risk_level, "#94A3B8")
 
-        bar_columns = {}
-        for idx, row in table_data.iterrows():
-            bar_color = get_bar_color(row["nivel_riesgo"])
-            bar_columns[idx] = bar_color
+        # Create HTML bars for display
+        def create_progress_bar_html(value: float, risk_level: str) -> str:
+            color = get_bar_color(risk_level)
+            percentage = int(value * 100)
+            return f'<div style="width:100%;height:24px;background:#E5E7EB;border-radius:4px;overflow:hidden;"><div style="width:{percentage}%;height:100%;background:{color};"></div></div>'
+
+        # Add HTML column for visualization
+        table_display = table_data.copy()
+        table_display["Probabilidad_Bar"] = table_display.apply(
+            lambda row: create_progress_bar_html(row["probabilidad"], row["nivel_riesgo"]),
+            axis=1
+        )
 
         edited = st.data_editor(
             table_data,
@@ -514,53 +513,16 @@ def render_dashboard():
             key="dashboard_table",
         )
 
-        components.html("""
-        <script>
-        function colorProgressBars() {
-            const riskColors = {
-                'ALTO': '#EF4444',
-                'MEDIO': '#FBBF24',
-                'BAJO': '#10B981'
-            };
-
-            try {
-                // Find all tables in the document
-                const tables = document.querySelectorAll('table');
-
-                tables.forEach(table => {
-                    const rows = table.querySelectorAll('tbody tr');
-
-                    rows.forEach(row => {
-                        const cells = Array.from(row.querySelectorAll('td'));
-
-                        if (cells.length > 0) {
-                            // Get the last cell which contains risk level
-                            const lastCell = cells[cells.length - 1];
-                            const riskText = lastCell.textContent.trim();
-
-                            // Find progress bar in this row
-                            const progressBar = row.querySelector('[role="progressbar"]');
-
-                            if (progressBar && riskColors[riskText]) {
-                                const color = riskColors[riskText];
-                                const barDiv = progressBar.querySelector('div');
-                                if (barDiv) {
-                                    barDiv.style.backgroundColor = color;
-                                }
-                            }
-                        }
-                    });
-                });
-            } catch(e) {
-                console.log('Error:', e);
-            }
-        }
-
-        // Run immediately and on interval
-        colorProgressBars();
-        setInterval(colorProgressBars, 300);
-        </script>
-        """, height=0)
+        # Display the colored bars separately
+        st.markdown("### Vista de probabilidades por estudiante")
+        for idx, row in table_display.iterrows():
+            col1, col2, col3 = st.columns([2, 3, 1])
+            with col1:
+                st.write(f"**{row['student_label']}**")
+            with col2:
+                st.markdown(create_progress_bar_html(row["probabilidad"], row["nivel_riesgo"]), unsafe_allow_html=True)
+            with col3:
+                st.write(f"{row['nivel_riesgo']}")
 
         selected_rows = edited[edited["Seleccionar"]]
     if not selected_rows.empty:
