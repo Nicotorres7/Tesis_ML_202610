@@ -439,6 +439,9 @@ def build_base_style(theme_name: str) -> str:
     .sat-hero h1, .sat-hero h2, .sat-hero h3, .sat-hero p, .sat-hero div {{
         color: #FFFFFF !important;
     }}
+    .sat-hero h1 {{
+        color: white !important;
+    }}
     .sat-card {{
         background: var(--sat-panel);
         border: 1px solid var(--sat-border);
