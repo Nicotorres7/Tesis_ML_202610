@@ -486,43 +486,34 @@ def render_dashboard():
             percentage = int(value * 100)
             return f'<div style="width:100%;height:24px;background:#E5E7EB;border-radius:4px;overflow:hidden;"><div style="width:{percentage}%;height:100%;background:{color};"></div></div>'
 
-        # Add HTML column for visualization
-        table_display = table_data.copy()
-        table_display["Probabilidad_Bar"] = table_display.apply(
+        # Add a column with HTML bars instead of progress column
+        table_for_display = table_data.copy()
+        table_for_display["Probabilidad"] = table_for_display.apply(
             lambda row: create_progress_bar_html(row["probabilidad"], row["nivel_riesgo"]),
             axis=1
         )
 
+        # Remove the original probabilidad column and reorder
+        table_for_display = table_for_display[["Seleccionar", "student_key", "student_label", "Probabilidad", "nivel_riesgo"]]
+
         edited = st.data_editor(
-            table_data,
+            table_for_display,
             hide_index=True,
             width="stretch",
             num_rows="fixed",
-            disabled=["student_key", "student_label", "probabilidad", "nivel_riesgo"],
+            disabled=["student_key", "student_label", "Probabilidad", "nivel_riesgo"],
             column_config={
                 "student_key": "ID",
                 "student_label": "Nombre",
-                "probabilidad": st.column_config.ProgressColumn(
-                    "Probabilidad",
-                    min_value=0.0,
-                    max_value=1.0,
-                    format=""
-                ),
+                "Probabilidad": st.column_config.TextColumn("Probabilidad"),
                 "nivel_riesgo": "Categoria",
             },
             key="dashboard_table",
+            unsafe_allow_html=True,
         )
 
-        # Display the colored bars separately
-        st.markdown("### Vista de probabilidades por estudiante")
-        for idx, row in table_display.iterrows():
-            col1, col2, col3 = st.columns([2, 3, 1])
-            with col1:
-                st.write(f"**{row['student_label']}**")
-            with col2:
-                st.markdown(create_progress_bar_html(row["probabilidad"], row["nivel_riesgo"]), unsafe_allow_html=True)
-            with col3:
-                st.write(f"{row['nivel_riesgo']}")
+        # Update selected_rows based on edited table
+        selected_rows = edited[edited["Seleccionar"]]
 
         selected_rows = edited[edited["Seleccionar"]]
     if not selected_rows.empty:
