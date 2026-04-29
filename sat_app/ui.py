@@ -161,7 +161,7 @@ def render_home():
         """
         <div class="sat-hero">
             <div class="sat-badge">MVP conectado a modelos reales</div>
-            <h1 style="margin:0;color:white !important;text-shadow:0 2px 4px rgba(0,0,0,0.1);font-weight:700;font-size:2.5rem;">Sistema de Alerta Temprana</h1>
+            <h1 id="hero-title">Sistema de Alerta Temprana</h1>
             <p style="font-size:1.05rem;max-width:760px;color:white !important;margin-top:1rem;">
                 Predice riesgo academico en semana 6 y semana 11, prioriza estudiantes y exporta reportes
                 listos para seguimiento docente.
@@ -170,6 +170,37 @@ def render_home():
         """,
         unsafe_allow_html=True,
     )
+
+    # Use JavaScript to force the title color
+    components.html("""
+    <script>
+    function forceWhiteTitle() {
+        const title = document.getElementById('hero-title');
+        if (title) {
+            title.style.color = 'white';
+            title.style.textShadow = '0 2px 4px rgba(0,0,0,0.1)';
+            title.style.fontSize = '2.5rem';
+            title.style.fontWeight = '700';
+            title.style.margin = '0';
+        }
+    }
+
+    // Run immediately
+    forceWhiteTitle();
+
+    // Run again after a delay to catch Streamlit's rendering
+    setTimeout(forceWhiteTitle, 100);
+    setTimeout(forceWhiteTitle, 500);
+    setTimeout(forceWhiteTitle, 1000);
+
+    // Watch for changes
+    const observer = new MutationObserver(forceWhiteTitle);
+    const title = document.getElementById('hero-title');
+    if (title) {
+        observer.observe(title, { attributes: true });
+    }
+    </script>
+    """, height=0)
     col1, col2, col3 = st.columns(3)
     steps = [
         ("1. Selecciona un modelo", "Compara precision, balance y recall con metricas y graficas exportadas."),
