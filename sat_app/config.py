@@ -452,6 +452,16 @@ def build_base_style(theme_name: str) -> str:
     .sat-hero .stMarkdown h1 {{
         color: white !important;
     }}
+
+    /* Override any h1 color in sat-hero */
+    .sat-hero h1, .sat-hero [role="heading"] {{
+        color: white !important;
+    }}
+
+    /* Target the specific title element */
+    #hero-title {{
+        color: white !important;
+    }}
     .sat-card {{
         background: var(--sat-panel);
         border: 1px solid var(--sat-border);

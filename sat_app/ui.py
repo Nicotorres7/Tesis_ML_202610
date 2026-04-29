@@ -175,31 +175,31 @@ def render_home():
     components.html("""
     <script>
     function forceWhiteTitle() {
-        const title = document.getElementById('hero-title');
-        if (title) {
-            title.style.color = 'white';
-            title.style.textShadow = '0 2px 4px rgba(0,0,0,0.1)';
-            title.style.fontSize = '2.5rem';
-            title.style.fontWeight = '700';
-            title.style.margin = '0';
-        }
+        try {
+            const title = document.getElementById('hero-title');
+            if (title) {
+                title.removeAttribute('style');
+                title.setAttribute('style', 'color: white !important; text-shadow: 0 2px 4px rgba(0,0,0,0.1); font-weight: 700; font-size: 2.5rem; margin: 0;');
+                // Also try adding a class
+                title.classList.add('sat-hero-title-white');
+            }
+        } catch(e) {}
     }
 
     // Run immediately
     forceWhiteTitle();
 
-    // Run again after a delay to catch Streamlit's rendering
-    setTimeout(forceWhiteTitle, 100);
-    setTimeout(forceWhiteTitle, 500);
-    setTimeout(forceWhiteTitle, 1000);
-
-    // Watch for changes
-    const observer = new MutationObserver(forceWhiteTitle);
-    const title = document.getElementById('hero-title');
-    if (title) {
-        observer.observe(title, { attributes: true });
-    }
+    // Run repeatedly
+    setInterval(forceWhiteTitle, 200);
     </script>
+    <style>
+    #hero-title {
+        color: white !important;
+    }
+    .sat-hero-title-white {
+        color: white !important;
+    }
+    </style>
     """, height=0)
     col1, col2, col3 = st.columns(3)
     steps = [
