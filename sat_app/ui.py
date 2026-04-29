@@ -474,7 +474,7 @@ def render_dashboard():
         st.markdown("### Estudiantes priorizados")
         st.caption("Selecciona una fila para abrir el detalle y entender los factores del caso.")
 
-        table_data = filtered.assign(Seleccionar=False)[["Seleccionar", "student_key", "student_label", "probabilidad", "nivel_riesgo"]].copy()
+        table_data = filtered.assign(Seleccionar=False)[["Seleccionar", "student_key", "student_label", "nivel_riesgo"]].copy()
 
         def get_bar_color(risk_level: str) -> str:
             colors = {"ALTO": "#EF4444", "MEDIO": "#FBBF24", "BAJO": "#10B981"}
@@ -486,34 +486,31 @@ def render_dashboard():
             percentage = int(value * 100)
             return f'<div style="width:100%;height:24px;background:#E5E7EB;border-radius:4px;overflow:hidden;"><div style="width:{percentage}%;height:100%;background:{color};"></div></div>'
 
-        # Add a column with HTML bars instead of progress column
-        table_for_display = table_data.copy()
-        table_for_display["Probabilidad"] = table_for_display.apply(
-            lambda row: create_progress_bar_html(row["probabilidad"], row["nivel_riesgo"]),
-            axis=1
-        )
-
-        # Remove the original probabilidad column and reorder
-        table_for_display = table_for_display[["Seleccionar", "student_key", "student_label", "Probabilidad", "nivel_riesgo"]]
-
         edited = st.data_editor(
-            table_for_display,
+            table_data,
             hide_index=True,
             width="stretch",
             num_rows="fixed",
-            disabled=["student_key", "student_label", "Probabilidad", "nivel_riesgo"],
+            disabled=["student_key", "student_label", "nivel_riesgo"],
             column_config={
                 "student_key": "ID",
                 "student_label": "Nombre",
-                "Probabilidad": st.column_config.TextColumn("Probabilidad"),
                 "nivel_riesgo": "Categoria",
             },
             key="dashboard_table",
-            unsafe_allow_html=True,
         )
-
-        # Update selected_rows based on edited table
         selected_rows = edited[edited["Seleccionar"]]
+
+        # Display the colored bars
+        st.markdown("### Probabilidades por estudiante")
+        for idx, row in filtered.iterrows():
+            col1, col2, col3 = st.columns([2, 3, 1])
+            with col1:
+                st.write(f"**{row['student_label']}**")
+            with col2:
+                st.markdown(create_progress_bar_html(row["probabilidad"], row["nivel_riesgo"]), unsafe_allow_html=True)
+            with col3:
+                st.write(f"{row['nivel_riesgo']}")
 
         selected_rows = edited[edited["Seleccionar"]]
     if not selected_rows.empty:
