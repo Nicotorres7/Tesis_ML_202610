@@ -161,8 +161,8 @@ def render_home():
         """
         <div class="sat-hero">
             <div class="sat-badge">MVP conectado a modelos reales</div>
-            <h1 style="margin:0;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.1);">Sistema de Alerta Temprana</h1>
-            <p style="font-size:1.05rem;max-width:760px;color:white;">
+            <h1 style="margin:0;color:white !important;text-shadow:0 2px 4px rgba(0,0,0,0.1);font-weight:700;font-size:2.5rem;">Sistema de Alerta Temprana</h1>
+            <p style="font-size:1.05rem;max-width:760px;color:white !important;margin-top:1rem;">
                 Predice riesgo academico en semana 6 y semana 11, prioriza estudiantes y exporta reportes
                 listos para seguimiento docente.
             </p>

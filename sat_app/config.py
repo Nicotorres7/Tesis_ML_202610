@@ -441,6 +441,16 @@ def build_base_style(theme_name: str) -> str:
     }}
     .sat-hero h1 {{
         color: white !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    }}
+    .sat-hero > h1 {{
+        color: #FFFFFF !important;
+    }}
+    .stMarkdown h1 {{
+        color: var(--sat-text) !important;
+    }}
+    .sat-hero .stMarkdown h1 {{
+        color: white !important;
     }}
     .sat-card {{
         background: var(--sat-panel);
