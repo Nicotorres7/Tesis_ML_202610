@@ -5,6 +5,7 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 from sat_app.charts import (
     cohort_heatmap,
@@ -513,7 +514,7 @@ def render_dashboard():
             key="dashboard_table",
         )
 
-        st.markdown("""
+        components.html("""
         <script>
         function colorProgressBars() {
             const riskColors = {
@@ -523,14 +524,14 @@ def render_dashboard():
             };
 
             try {
-                // Find all tables
-                const tables = document.querySelectorAll('[data-testid="stDataFrame"] table, [role="table"]');
+                // Find all tables in the document
+                const tables = document.querySelectorAll('table');
 
                 tables.forEach(table => {
-                    const rows = table.querySelectorAll('tbody tr, tr');
+                    const rows = table.querySelectorAll('tbody tr');
 
-                    rows.forEach((row, rowIndex) => {
-                        const cells = Array.from(row.querySelectorAll('td, th'));
+                    rows.forEach(row => {
+                        const cells = Array.from(row.querySelectorAll('td'));
 
                         if (cells.length > 0) {
                             // Get the last cell which contains risk level
@@ -545,32 +546,21 @@ def render_dashboard():
                                 const barDiv = progressBar.querySelector('div');
                                 if (barDiv) {
                                     barDiv.style.backgroundColor = color;
-                                    barDiv.style.transition = 'background-color 0.3s';
                                 }
                             }
                         }
                     });
                 });
             } catch(e) {
-                console.log('Progress bar coloring error:', e);
+                console.log('Error:', e);
             }
         }
 
-        // Run on load and watch for changes
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', colorProgressBars);
-        } else {
-            colorProgressBars();
-        }
-
-        // Also run periodically to catch dynamically added rows
-        setInterval(colorProgressBars, 500);
-
-        // Watch for mutations
-        const observer = new MutationObserver(colorProgressBars);
-        observer.observe(document.body, { childList: true, subtree: true });
+        // Run immediately and on interval
+        colorProgressBars();
+        setInterval(colorProgressBars, 300);
         </script>
-        """, unsafe_allow_html=True)
+        """, height=0)
 
         selected_rows = edited[edited["Seleccionar"]]
     if not selected_rows.empty:
