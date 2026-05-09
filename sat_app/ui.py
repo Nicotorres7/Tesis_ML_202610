@@ -56,8 +56,8 @@ def run_app():
         st.markdown("## SAT Uniandes")
         st.caption("Sistema de Alerta Temprana para docentes")
         page = st.radio(
-            "Navegacion",
-            ["Inicio", "Modelos", "Carga y prediccion", "Dashboard", "Estadisticas", "Exportacion", "Gestion de modelos"],
+            "Navegación",
+            ["Inicio", "Modelos", "Carga y predicción", "Dashboard", "Estadísticas", "Exportación", "Gestión de modelos"],
         )
         checkpoint = st.selectbox(
             "Checkpoint activo",
@@ -75,20 +75,20 @@ def run_app():
         st.session_state.selected_criterion = criterion
         st.divider()
         st.caption("Estado")
-        st.write(f"Archivo cargado: {'Si' if st.session_state.raw_df is not None else 'No'}")
-        st.write(f"Predicciones {checkpoint.upper()}: {'Si' if checkpoint in st.session_state.predictions else 'No'}")
+        st.write(f"Archivo cargado: {'Sí' if st.session_state.raw_df is not None else 'No'}")
+        st.write(f"Predicciones {checkpoint.upper()}: {'Sí' if checkpoint in st.session_state.predictions else 'No'}")
 
     if page == "Inicio":
         render_home()
     elif page == "Modelos":
         render_models()
-    elif page == "Carga y prediccion":
+    elif page == "Carga y predicción":
         render_upload_predict()
     elif page == "Dashboard":
         render_dashboard()
-    elif page == "Estadisticas":
+    elif page == "Estadísticas":
         render_statistics()
-    elif page == "Exportacion":
+    elif page == "Exportación":
         render_export()
     else:
         render_model_management()
@@ -115,10 +115,6 @@ def _init_state():
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
-
-
-def _theme() -> str:
-    return "Claro"
 
 
 def _chart_theme() -> str:
@@ -156,14 +152,66 @@ def _render_risk_badge(risk: str) -> str:
     )
 
 
+def _format_metric(value: Any) -> str:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return "N/D"
+    if isinstance(value, float):
+        return f"{value:.3f}"
+    return str(value)
+
+
+def _format_parameter_value(value: Any) -> str:
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    if isinstance(value, (list, tuple, set)):
+        text = ", ".join(_format_parameter_value(item) for item in value)
+        return text[:120] + "..." if len(text) > 120 else text
+    text = str(value)
+    return text[:120] + "..." if len(text) > 120 else text
+
+
+def _model_parameter_rows(bundle: dict[str, Any], card: dict[str, Any]) -> list[tuple[str, str]]:
+    model = bundle["modelo"]
+    params = model.get_params(deep=False) if hasattr(model, "get_params") else {}
+    preferred_keys = [
+        "penalty",
+        "C",
+        "solver",
+        "max_depth",
+        "min_samples_split",
+        "min_samples_leaf",
+        "n_estimators",
+        "learning_rate",
+        "subsample",
+        "colsample_bytree",
+        "max_features",
+        "random_state",
+    ]
+    rows = [
+        ("Familia", card["family"]),
+        ("Criterio de selección", card["label"]),
+        ("Umbral de alerta", f"{card['threshold']:.3f}"),
+        ("Variables del modelo", str(len(card["features"]))),
+    ]
+    for key in preferred_keys:
+        if key in params:
+            rows.append((key, _format_parameter_value(params[key])))
+    return rows
+
+
+def _render_features_chips(features: list[str]) -> str:
+    chips = "".join(f"<span class='sat-chip'>{feature_display_name(name)}</span>" for name in features)
+    return f"<div>{chips}</div>"
+
+
 def render_home():
     st.markdown(
         """
         <div class="sat-hero">
             <div class="sat-badge">MVP conectado a modelos reales</div>
-            <h1 id="hero-title">Sistema de Alerta Temprana</h1>
+            <h1 id="hero-title" style="margin:0;color:white !important;">Sistema de Alerta Temprana</h1>
             <p style="font-size:1.05rem;max-width:760px;color:white !important;margin-top:1rem;">
-                Predice riesgo academico en semana 6 y semana 11, prioriza estudiantes y exporta reportes
+                Predice riesgo académico en semana 6 y semana 11, prioriza estudiantes y exporta reportes
                 listos para seguimiento docente.
             </p>
         </div>
@@ -203,106 +251,165 @@ def render_home():
     """, height=0)
     col1, col2, col3 = st.columns(3)
     steps = [
-        ("1. Selecciona un modelo", "Compara precision, balance y recall con metricas y graficas exportadas."),
+        ("1. Selecciona un modelo", "Compara precisión, balance y recall con métricas y gráficas exportadas."),
         ("2. Carga datos", "Sube Excel/CSV, mapea columnas y valida completitud antes de predecir."),
-        ("3. Revisa resultados", "Tabla filtrable, analytics de cohorte y exportacion a Excel o PDF."),
+        ("3. Revisa resultados", "Tabla filtrable, analítica de cohorte y exportación a Excel o PDF."),
     ]
     for col, (title, description) in zip((col1, col2, col3), steps):
         with col:
             st.markdown(f"<div class='sat-card'><h3>{title}</h3><p>{description}</p></div>", unsafe_allow_html=True)
 
-    st.markdown("### Analisis recientes")
+    st.markdown("### Análisis recientes")
     if st.session_state.recent_runs:
         st.dataframe(pd.DataFrame(st.session_state.recent_runs), width="stretch", hide_index=True)
     else:
-        st.info("Aun no hay predicciones ejecutadas en esta sesion. Empieza en Carga y prediccion.")
+        st.info("Aún no hay predicciones ejecutadas en esta sesión. Empieza en Carga y predicción.")
 
 
 def render_models():
-    st.markdown("## Seleccion de modelos")
+    st.markdown("## Selección de modelos")
     metadata_cards = available_model_cards()
-    tabs = st.tabs([f"{CHECKPOINTS[key]['label']} - {CHECKPOINTS[key]['title']}" for key in CHECKPOINTS])
-    for tab, checkpoint in zip(tabs, CHECKPOINTS):
-        with tab:
-            st.markdown("### Modelos disponibles")
-            cols = st.columns(3)
-            for col, card in zip(cols, metadata_cards[checkpoint]):
-                metrics = card["metrics"]
-                with col:
-                    bg_color, border_color, text_color = _criterion_card_style(card["criterion"])
-                    st.markdown(
-                        f"""
-                        <div class="sat-card" style="background:{bg_color};border:1px solid {border_color};color:{text_color};">
-                            <div class="sat-badge">{'Recomendado' if card['criterion'] == 'f1' else card['family']}</div>
-                            <h3 style="margin-top:0;color:{text_color};">{card['label']}</h3>
-                            <p style="color:{text_color};">{card['description']}</p>
-                            <p style="color:{text_color};"><strong>AUC:</strong> {metrics['AUC']:.3f}<br>
-                            <strong>Recall:</strong> {metrics['Recall']:.3f}<br>
-                            <strong>F1:</strong> {metrics['F1']:.3f}</p>
-                            <p class="sat-muted" style="color:{text_color};opacity:0.85;">Familia: {card['family']} | Umbral: {card['threshold']:.3f}</p>
+    selected_checkpoint = st.session_state.selected_checkpoint
+    selected_criterion = st.session_state.selected_criterion
+
+    st.markdown(
+        f"""
+        <div class="sat-checkpoint-banner">
+            <div class="sat-badge">Checkpoint activo</div>
+            <h3 style="margin:0 0 0.35rem 0;">{CHECKPOINTS[selected_checkpoint]['label']} · {CHECKPOINTS[selected_checkpoint]['title']}</h3>
+            <div class="sat-muted">El modelo seleccionado se resalta abajo y su contenido se muestra en una vista amplia para facilitar la lectura de las gráficas.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    cp_cols = st.columns(len(CHECKPOINTS))
+    for col, checkpoint in zip(cp_cols, CHECKPOINTS):
+        active = checkpoint == selected_checkpoint
+        with col:
+            st.markdown(
+                f"""
+                <div class="sat-card sat-model-card {'is-selected' if active else 'is-dimmed'}">
+                    <div class="sat-badge">{'Activo' if active else 'Disponible'}</div>
+                    <h3 style="margin-top:0;">{CHECKPOINTS[checkpoint]['label']}</h3>
+                    <p style="margin-bottom:0.35rem;"><strong>{CHECKPOINTS[checkpoint]['title']}</strong></p>
+                    <p class="sat-muted">Selecciona este checkpoint para comparar sus tres versiones de modelo.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button(
+                "Ver este checkpoint" if not active else "Checkpoint actual",
+                key=f"checkpoint_focus_{checkpoint}",
+                disabled=active,
+                use_container_width=True,
+            ):
+                st.session_state.pending_model_selection = (checkpoint, selected_criterion)
+                st.rerun()
+
+    st.markdown("### Versiones del modelo")
+    cards = metadata_cards[selected_checkpoint]
+    cols = st.columns(3)
+    for col, card in zip(cols, cards):
+        metrics = card["metrics"]
+        is_selected = card["criterion"] == selected_criterion
+        bg_color, border_color, text_color = _criterion_card_style(card["criterion"])
+        badge_text = "Seleccionado" if is_selected else ("Recomendado" if card["criterion"] == "f1" else card["family"])
+        with col:
+            st.markdown(
+                f"""
+                <div class="sat-card sat-model-card {'is-selected' if is_selected else 'is-dimmed'}" style="background:{bg_color};border-color:{border_color};color:{text_color};">
+                    <div class="sat-badge">{badge_text}</div>
+                    <h3 style="margin-top:0;color:{text_color};">{card['label']}</h3>
+                    <p style="color:{text_color};min-height:72px;">{card['description']}</p>
+                    <div class="sat-model-highlight">
+                        <div class="sat-metric-tile">
+                            <div class="sat-metric-value">{metrics['AUC']:.3f}</div>
+                            <div class="sat-metric-label">AUC</div>
                         </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                    col_btn1, col_btn2 = st.columns(2)
-                    with col_btn1:
-                        if st.button("Ver detalles", key=f"details_{checkpoint}_{card['criterion']}", width="stretch"):
-                            st.session_state[f"model_details_{checkpoint}"] = card["criterion"]
-                            st.rerun()
-                    with col_btn2:
-                        is_selected = (st.session_state.selected_checkpoint == checkpoint and
-                                      st.session_state.selected_criterion == card["criterion"])
-                        btn_style = "background-color: #E5E7EB; color: #1F2937;" if is_selected else ""
-                        btn_text = "✓ Modelo activo" if is_selected else "Usar modelo"
-                        if st.button(btn_text, key=f"use_{checkpoint}_{card['criterion']}", width="stretch"):
-                            st.session_state.pending_model_selection = (checkpoint, card["criterion"])
-                            st.rerun()
+                        <div class="sat-metric-tile">
+                            <div class="sat-metric-value">{metrics['Recall']:.3f}</div>
+                            <div class="sat-metric-label">Recall</div>
+                        </div>
+                        <div class="sat-metric-tile">
+                            <div class="sat-metric-value">{metrics['F1']:.3f}</div>
+                            <div class="sat-metric-label">F1</div>
+                        </div>
+                    </div>
+                    <p class="sat-muted" style="color:{text_color};opacity:0.88;">Familia: {card['family']} · Umbral: {card['threshold']:.3f}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if st.button(
+                "Modelo actual" if is_selected else "Seleccionar modelo",
+                key=f"use_{selected_checkpoint}_{card['criterion']}",
+                disabled=is_selected,
+                use_container_width=True,
+            ):
+                st.session_state.pending_model_selection = (selected_checkpoint, card["criterion"])
+                st.rerun()
 
-            st.divider()
+    selected_card = next(card for card in cards if card["criterion"] == selected_criterion)
+    selected_bundle = load_bundle(selected_checkpoint, selected_criterion)
 
-            details_key = f"model_details_{checkpoint}"
-            if details_key in st.session_state and st.session_state[details_key]:
-                selected_criterion = st.session_state[details_key]
-                selected_card = next(card for card in metadata_cards[checkpoint] if card["criterion"] == selected_criterion)
-                metrics = selected_card["metrics"]
-                bg_color, border_color, text_color = _criterion_card_style(selected_card["criterion"])
+    st.markdown("### Vista ampliada del modelo seleccionado")
+    st.markdown(
+        f"""
+        <div class="sat-card">
+            <div class="sat-badge">Modelo activo</div>
+            <h3 style="margin-top:0;">{selected_card['label']} · {CHECKPOINTS[selected_checkpoint]['label']} - {CHECKPOINTS[selected_checkpoint]['title']}</h3>
+            <p>{selected_card['description']}</p>
+            <div class="sat-model-highlight">
+                <div class="sat-metric-tile"><div class="sat-metric-value">{selected_card['metrics']['AUC']:.3f}</div><div class="sat-metric-label">AUC</div></div>
+                <div class="sat-metric-tile"><div class="sat-metric-value">{selected_card['metrics']['Prec']:.3f}</div><div class="sat-metric-label">Precisión</div></div>
+                <div class="sat-metric-tile"><div class="sat-metric-value">{selected_card['metrics']['Recall']:.3f}</div><div class="sat-metric-label">Recall</div></div>
+                <div class="sat-metric-tile"><div class="sat-metric-value">{selected_card['metrics']['F1']:.3f}</div><div class="sat-metric-label">F1</div></div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-                st.markdown(f"### Detalles - {selected_card['label']}")
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("#### Métricas LOSO")
-                    metric_cols = st.columns(4)
-                    for idx, (metric_name, metric_value) in enumerate(metrics.items()):
-                        with metric_cols[idx % 4]:
-                            st.metric(metric_name, f"{metric_value:.3f}")
-
-                with col2:
-                    st.markdown("#### Información del modelo")
-                    st.write(f"**Familia:** {selected_card['family']}")
-                    st.write(f"**Umbral:** {selected_card['threshold']:.3f}")
-                    st.write(f"**Features utilizados:** {len(selected_card['features'])}")
-
-                st.markdown("#### Features")
-                features_display = [feature_display_name(name) for name in selected_card["features"]]
-                st.write(", ".join(features_display))
-
-                st.markdown("#### Gráficas")
-                if selected_card["image_main"].exists():
-                    st.image(str(selected_card["image_main"].resolve()), width="stretch", caption="Comparativa del modelo")
-                if selected_card["image_threshold"].exists():
-                    st.image(str(selected_card["image_threshold"].resolve()), width="stretch", caption="Análisis de umbral")
-                if selected_card["image_comparison"].exists():
-                    st.image(str(selected_card["image_comparison"].resolve()), width="stretch", caption="Comparación general")
-
-                st.divider()
-                if st.button("Usar este modelo", key=f"use_details_{checkpoint}_{selected_criterion}", width="stretch"):
-                    st.session_state.pending_model_selection = (checkpoint, selected_criterion)
-                    st.rerun()
+    visual_tab, params_tab, features_tab = st.tabs(["Gráficas", "Parámetros", "Variables"])
+    with visual_tab:
+        if selected_card["image_main"].exists():
+            st.image(str(selected_card["image_main"].resolve()), width="stretch", caption="Desempeño principal del modelo")
+        comp_left, comp_right = st.columns(2)
+        with comp_left:
+            if selected_card["image_threshold"].exists():
+                st.image(str(selected_card["image_threshold"].resolve()), width="stretch", caption="Comportamiento por umbral")
+        with comp_right:
+            if selected_card["image_comparison"].exists():
+                st.image(str(selected_card["image_comparison"].resolve()), width="stretch", caption="Comparación general del checkpoint")
+    with params_tab:
+        rows = _model_parameter_rows(selected_bundle, selected_card)
+        table_html = "".join(f"<tr><td><strong>{label}</strong></td><td>{value}</td></tr>" for label, value in rows)
+        st.markdown(
+            f"""
+            <table class="sat-params-table">
+                <thead><tr><th>Parámetro</th><th>Valor</th></tr></thead>
+                <tbody>{table_html}</tbody>
+            </table>
+            """,
+            unsafe_allow_html=True,
+        )
+    with features_tab:
+        st.markdown("#### Variables utilizadas")
+        st.markdown(_render_features_chips(selected_card["features"]), unsafe_allow_html=True)
+        metrics_df = pd.DataFrame(
+            [
+                {"Métrica": "AUC-ROC", "Valor": _format_metric(selected_card["metrics"]["AUC"])},
+                {"Métrica": "Precisión", "Valor": _format_metric(selected_card["metrics"]["Prec"])},
+                {"Métrica": "Recall", "Valor": _format_metric(selected_card["metrics"]["Recall"])},
+                {"Métrica": "F1", "Valor": _format_metric(selected_card["metrics"]["F1"])},
+            ]
+        )
+        st.dataframe(metrics_df, hide_index=True, width="stretch")
 
 
 def render_upload_predict():
-    st.markdown("## Carga de datos y prediccion")
+    st.markdown("## Carga de datos y predicción")
     step = st.radio(
         "",
         [1, 2, 3],
@@ -332,7 +439,7 @@ def render_upload_predict():
             return
         st.caption(
             f"{CHECKPOINTS[checkpoint]['label']} con modelo {CRITERIA_LABELS[criterion]} "
-            f"requiere {len(required)} columnas base para calcular {len(bundle['features'])} features."
+            f"requiere {len(required)} columnas base para calcular {len(bundle['features'])} variables."
         )
         if st.button("Auto-detectar columnas"):
             st.session_state.mapping = autodetect_mapping(st.session_state.raw_df.columns.tolist(), required)
@@ -401,7 +508,7 @@ def render_upload_predict():
                     "alto_riesgo": int((final_df["nivel_riesgo"] == "ALTO").sum()),
                 },
             )
-            st.success("Prediccion completada. Revisa el Dashboard y Estadisticas.")
+            st.success("Predicción completada. Revisa el Dashboard y Estadísticas.")
 
 
 def _get_active_predictions() -> dict[str, Any] | None:
@@ -426,7 +533,7 @@ def render_dashboard():
     st.markdown("## Dashboard principal")
     payload = _get_active_predictions()
     if payload is None:
-        st.info("Aun no hay predicciones para el checkpoint activo. Ve a Carga y prediccion.")
+        st.info("Aún no hay predicciones para el checkpoint activo. Ve a Carga y predicción.")
         return
     df = payload["data"]
     summary = summarize_predictions(df)
@@ -441,12 +548,12 @@ def render_dashboard():
     st.markdown(
         f"""
         <div class="sat-note">
-            <div class="sat-panel-title">Lectura rapida de la cohorte</div>
+            <div class="sat-panel-title">Lectura rápida de la cohorte</div>
             <div style="margin-bottom:8px;">{_render_risk_badge(predominant_risk)}</div>
             <div class="sat-muted">
                 La cohorte actual tiene {summary['alto']} estudiantes en alto riesgo, {summary['medio']} en riesgo medio
                 y {summary['bajo']} en bajo riesgo. Usa la tabla para priorizar casos y el panel derecho para entender
-                por que el modelo elevó o redujo el riesgo en cada estudiante.
+                por qué el modelo elevó o redujo el riesgo en cada estudiante.
             </div>
         </div>
         """,
@@ -467,13 +574,13 @@ def render_dashboard():
                 unsafe_allow_html=True,
             )
 
-    st.markdown("### Filtros y navegacion")
+    st.markdown("### Filtros y navegación")
     with st.form("dashboard_filters_form", clear_on_submit=False):
         filter_col, search_col, action_col = st.columns([1.4, 1.2, 0.6])
         with filter_col:
             selected = st.multiselect("Filtros de riesgo", ["ALTO", "MEDIO", "BAJO"], default=st.session_state.dashboard_filters)
         with search_col:
-            search_value = st.text_input("Busqueda por ID o nombre", value=st.session_state.dashboard_search)
+            search_value = st.text_input("Búsqueda por ID o nombre", value=st.session_state.dashboard_search)
         with action_col:
             submitted = st.form_submit_button("Aplicar", use_container_width=True)
         if submitted:
@@ -500,9 +607,9 @@ def render_dashboard():
         st.warning("No hay estudiantes con los filtros actuales.")
         return
 
-    dashboard_tab, detail_tab = st.tabs(["Priorizacion", "Detalle del caso"])
+    dashboard_tab, detail_tab = st.tabs(["Ranking", "Detalle del caso"])
     with dashboard_tab:
-        st.markdown("### Estudiantes priorizados")
+        st.markdown("### Ranking de estudiantes en riesgo")
         st.caption("Selecciona una fila para abrir el detalle y entender los factores del caso.")
 
         table_data = filtered.assign(Seleccionar=False)[["Seleccionar", "student_key", "student_label", "nivel_riesgo"]].copy()
@@ -526,7 +633,8 @@ def render_dashboard():
             column_config={
                 "student_key": "ID",
                 "student_label": "Nombre",
-                "nivel_riesgo": "Categoria",
+                "probabilidad": st.column_config.ProgressColumn("Probabilidad", min_value=0.0, max_value=1.0),
+                "nivel_riesgo": "Categoría",
             },
             key="dashboard_table",
         )
@@ -555,9 +663,9 @@ def render_dashboard():
     factors = top_student_factors(bundle, df, student.name)
     model_obj = bundle["modelo"]
     effect_explanation = (
-        "En este modelo lineal, la contribucion sale de multiplicar cada feature estandarizada por su coeficiente."
+        "En este modelo lineal, la contribución se obtiene al multiplicar cada variable estandarizada por su coeficiente."
         if hasattr(model_obj, "coef_")
-        else "En este modelo no lineal, la contribucion es una aproximacion local basada en la desviacion del estudiante respecto a la cohorte y la importancia global de cada variable."
+        else "En este modelo no lineal, la contribución es una aproximación local basada en la desviación del estudiante respecto a la cohorte y la importancia global de cada variable."
     )
 
     with detail_tab:
@@ -565,7 +673,7 @@ def render_dashboard():
         with left:
             st.markdown("### Resumen del caso")
             st.markdown(_render_risk_badge(student["nivel_riesgo"]), unsafe_allow_html=True)
-            st.write(f"**ID anonimo:** {student['student_key']}")
+            st.write(f"**ID anónimo:** {student['student_key']}")
             st.write(f"**Nombre visible:** {student['student_label']}")
             st.write(f"**Probabilidad estimada:** {float(student['probabilidad']):.2%}")
             st.plotly_chart(small_probability_gauge(float(student["probabilidad"]), _chart_theme()), width="stretch")
@@ -584,15 +692,15 @@ def render_dashboard():
                 hide_index=True,
             )
         with right:
-            st.markdown("### Que explica este riesgo")
+            st.markdown("### Qué explica este riesgo")
             st.markdown(
                 """
                 <div class="sat-note">
-                    <div class="sat-panel-title">Como leer la grafica de efecto</div>
+                    <div class="sat-panel-title">Cómo leer la gráfica de contribución</div>
                     <div class="sat-muted">
-                        Esta visual muestra contribuciones locales del modelo para este estudiante.
-                        Rojo: variables que suben la alerta. Verde: variables que la moderan.
-                        La magnitud indica el peso relativo de ese factor en la puntuacion del caso.
+                        El cero queda en el centro. Las barras hacia la izquierda reducen el riesgo estimado y
+                        las barras hacia la derecha lo aumentan. La longitud muestra el peso relativo de cada variable
+                        en la predicción de este estudiante.
                     </div>
                 </div>
                 """,
@@ -605,7 +713,7 @@ def render_dashboard():
                     columns={
                         "feature_label": "Variable",
                         "sentido": "Lectura",
-                        "magnitud": "Magnitud",
+                        "magnitud": "Magnitud absoluta",
                     }
                 ),
                 hide_index=True,
@@ -614,10 +722,10 @@ def render_dashboard():
 
 
 def render_statistics():
-    st.markdown("## Estadisticas y analytics")
+    st.markdown("## Estadísticas y analítica")
     payload = _get_active_predictions()
     if payload is None:
-        st.info("Necesitas correr una prediccion antes de ver analytics.")
+        st.info("Necesitas correr una predicción antes de ver la analítica.")
         return
     df = payload["data"]
     overview_tab, factors_tab, model_tab = st.tabs(["Cohorte", "Caso seleccionado", "Modelo"])
@@ -625,7 +733,7 @@ def render_statistics():
     with overview_tab:
         top_left, top_right = st.columns(2)
         with top_left:
-            st.markdown("### Distribucion de riesgo")
+            st.markdown("### Distribución de riesgo")
             st.plotly_chart(risk_distribution_chart(df, _chart_theme()), width="stretch")
         with top_right:
             st.markdown("### Histograma de probabilidades")
@@ -636,9 +744,9 @@ def render_statistics():
         student = df.loc[df["student_key"] == selected_key].iloc[0]
         factors = top_student_factors(bundle, df, student.name)
         effect_explanation = (
-            "Contribucion exacta del score lineal."
+            "Contribución exacta del puntaje lineal."
             if hasattr(bundle["modelo"], "coef_")
-            else "Aproximacion local basada en importancia global y desviacion estandarizada."
+            else "Aproximación local basada en importancia global y desviación estandarizada."
         )
         fcol1, fcol2 = st.columns([1.25, 1])
         with fcol1:
@@ -647,14 +755,14 @@ def render_statistics():
             st.caption(effect_explanation)
             st.plotly_chart(feature_importance_chart(factors, _chart_theme()), width="stretch")
         with fcol2:
-            st.markdown("### Explicacion")
+            st.markdown("### Explicación")
             st.markdown(
                 """
                 <div class="sat-note">
-                    <div class="sat-panel-title">Interpretacion docente</div>
+                    <div class="sat-panel-title">Interpretación docente</div>
                     <div class="sat-muted">
-                        Este panel no dice causalidad. Solo muestra que variables pesaron mas en la prediccion de este caso.
-                        Si una barra sale en rojo, esa variable elevó la alerta. Si sale en verde, amortiguó el riesgo.
+                        Este panel no muestra causalidad. Solo resume qué variables pesaron más en la predicción de este caso.
+                        Si una barra sale a la derecha, esa variable aumentó la alerta. Si sale a la izquierda, la redujo.
                     </div>
                 </div>
                 """,
@@ -662,25 +770,25 @@ def render_statistics():
             )
             st.dataframe(
                 factors[["feature_label", "sentido", "magnitud"]].rename(
-                    columns={"feature_label": "Variable", "sentido": "Lectura", "magnitud": "Magnitud"}
+                    columns={"feature_label": "Variable", "sentido": "Lectura", "magnitud": "Magnitud absoluta"}
                 ),
                 hide_index=True,
                 width="stretch",
             )
 
     with model_tab:
-        st.markdown("### Metricas del modelo")
+        st.markdown("### Métricas del modelo")
         meta = load_all_metadata()[st.session_state.selected_checkpoint][st.session_state.selected_criterion]["metricas_loso"]
         metrics_df = pd.DataFrame(
             {
-                "Metrica": ["AUC-ROC", "Recall", "Precision", "F1"],
+                "Métrica": ["AUC-ROC", "Recall", "Precisión", "F1"],
                 "Valor": [meta["AUC"], meta["Recall"], meta["Prec"], meta["F1"]],
             }
         )
         left, right = st.columns([0.8, 1.2])
         with left:
             st.dataframe(metrics_df, hide_index=True, width="stretch")
-            st.caption(f"El modelo activo es {payload['bundle_name']} y usa {len(bundle['features'])} features.")
+            st.caption(f"El modelo activo es {payload['bundle_name']} y usa {len(bundle['features'])} variables.")
         with right:
             if len(bundle["features"]) >= 2:
                 st.markdown("#### Correlaciones de la cohorte")
@@ -689,7 +797,7 @@ def render_statistics():
                     st.plotly_chart(cohort_heatmap(df, numeric_cols, _chart_theme()), width="stretch")
 
     if "cp1" in st.session_state.predictions and "cp2" in st.session_state.predictions:
-        st.markdown("### Comparacion CP1 vs CP2")
+        st.markdown("### Comparación CP1 vs CP2")
         fig, merged = cp_scatter(
             st.session_state.predictions["cp1"]["data"],
             st.session_state.predictions["cp2"]["data"],
@@ -697,17 +805,17 @@ def render_statistics():
         )
         improved = int((merged["probabilidad_cp2"] < merged["probabilidad_cp1"]).sum())
         st.plotly_chart(fig, width="stretch")
-        st.success(f"{improved} estudiantes mejoraron entre CP1 y CP2 en la sesion actual.")
+        st.success(f"{improved} estudiantes mejoraron entre CP1 y CP2 en la sesión actual.")
 
 
 def render_export():
-    st.markdown("## Exportacion")
+    st.markdown("## Exportación")
     payload = _get_active_predictions()
     if payload is None:
         st.info("Primero genera predicciones para poder exportarlas.")
         return
     df = _filter_dashboard_df(payload["data"])
-    st.caption("La exportacion respeta los filtros y la busqueda aplicados en el Dashboard.")
+    st.caption("La exportación respeta los filtros y la búsqueda aplicados en el Dashboard.")
     options = st.multiselect(
         "Columnas a incluir",
         ["student_key", "student_label", "id_estudiante", "probabilidad", "nivel_riesgo", "alerta"],
@@ -725,9 +833,11 @@ def render_export():
             width="stretch",
         )
     with col2:
-        pdf_bytes = summary_pdf_bytes(export_df.assign(student_key=df["student_key"], probabilidad=df["probabilidad"], nivel_riesgo=df["nivel_riesgo"]),
-                                      title="Reporte SAT",
-                                      subtitle=f"{CHECKPOINTS[st.session_state.selected_checkpoint]['label']} - {payload['bundle_name']}")
+        pdf_bytes = summary_pdf_bytes(
+            export_df.assign(student_key=df["student_key"], probabilidad=df["probabilidad"], nivel_riesgo=df["nivel_riesgo"]),
+            title="Reporte SAT",
+            subtitle=f"{CHECKPOINTS[st.session_state.selected_checkpoint]['label']} - {payload['bundle_name']}",
+        )
         st.download_button(
             "Generar PDF",
             data=pdf_bytes,
@@ -739,7 +849,7 @@ def render_export():
 
 
 def render_model_management():
-    st.markdown("## Gestion de modelos")
+    st.markdown("## Gestión de modelos")
     tab1, tab2 = st.tabs(["Estado de modelos", "Entrenar nuevo"])
     metadata = load_all_metadata()
     with tab1:
@@ -762,20 +872,20 @@ def render_model_management():
         if st.session_state.retrained_artifact is not None:
             st.success("Hay un modelo reentrenado listo para activarse o guardarse.")
     with tab2:
-        st.caption("Carga un dataset historico. La app valida minimo 100 filas y compara el nuevo modelo contra el actual.")
-        uploaded = st.file_uploader("Dataset historico", type=["csv", "xlsx", "xls"], key="retrain_file")
+        st.caption("Carga un dataset histórico. La app valida mínimo 100 filas y compara el nuevo modelo contra el actual.")
+        uploaded = st.file_uploader("Dataset histórico", type=["csv", "xlsx", "xls"], key="retrain_file")
         if uploaded is not None:
             hist_df = load_uploaded_dataset(uploaded)
             st.dataframe(hist_df.head(5), width="stretch")
             if len(hist_df) < 100:
-                st.error("El dataset historico debe tener al menos 100 filas.")
+                st.error("El dataset histórico debe tener al menos 100 filas.")
                 return
 
             checkpoint = st.selectbox("Checkpoint a reentrenar", list(CHECKPOINTS.keys()), format_func=lambda key: CHECKPOINTS[key]["label"], key="rt_cp")
             criterion = st.selectbox("Criterio objetivo", ["f1", "precision", "recall"], format_func=lambda key: CRITERIA_LABELS[key], key="rt_criterion")
             family = st.selectbox("Familia de modelo", ["LR", "DT", "RF", "XGB"])
             balancing = st.radio("Balanceo", ["none", "SMOTE", "SMOTEENN"], horizontal=True)
-            validation = st.radio("Validacion", ["Holdout", "K-Fold", "LOSO"], horizontal=True)
+            validation = st.radio("Validación", ["Holdout", "K-Fold", "LOSO"], horizontal=True)
             target_column = st.selectbox("Columna objetivo (reprobo)", hist_df.columns.tolist())
             semester_column = st.selectbox("Columna de semestre para LOSO", ["", *hist_df.columns.tolist()])
             random_state = st.number_input("Random seed", min_value=1, value=42)
@@ -786,7 +896,7 @@ def render_model_management():
             feature_candidates = [col for col in bundle["features"] if col in hist_ready.columns]
             missing = [col for col in bundle["features"] if col not in hist_ready.columns]
             if missing:
-                st.warning("Faltan columnas para el feature set actual: " + ", ".join(missing))
+                st.warning("Faltan columnas para el conjunto actual de variables: " + ", ".join(missing))
             if st.button("Reentrenar modelo", type="primary"):
                 config = RetrainConfig(
                     checkpoint=checkpoint,
@@ -810,7 +920,7 @@ def render_model_management():
                     if abs(artifact["metrics"]["F1"] - current_metrics["F1"]) < 0.02
                     else "Peor"
                 )
-                st.write({"metricas_nuevas": artifact["metrics"], "veredicto": verdict})
+                st.write({"métricas_nuevas": artifact["metrics"], "veredicto": verdict})
                 if st.button("Activar / guardar nuevo modelo"):
                     path = save_retrained_model(artifact)
                     st.success(f"Nuevo modelo guardado en {path}")

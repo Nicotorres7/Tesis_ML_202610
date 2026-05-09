@@ -10,19 +10,21 @@ from sat_app.config import RISK_COLORS
 
 def _apply_theme(fig, theme_name: str):
     dark = theme_name == "Oscuro"
-    paper = "#121A2B" if dark else "#FFFFFF"
-    plot = "#182033" if dark else "#FFFFFF"
+    paper = "rgba(0,0,0,0)"
+    plot = "#121A2B" if dark else "#FFFFFF"
     font = "#E5EEF9" if dark else "#1F2937"
     grid = "#314158" if dark else "#E5E7EB"
+    axis_line = "#41536F" if dark else "#CBD5E1"
     fig.update_layout(
         paper_bgcolor=paper,
         plot_bgcolor=plot,
         font=dict(color=font),
-        margin=dict(l=10, r=10, t=28, b=10),
+        margin=dict(l=10, r=10, t=48, b=10),
         legend_title_text="",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor="rgba(0,0,0,0)"),
     )
-    fig.update_xaxes(gridcolor=grid, zerolinecolor=grid)
-    fig.update_yaxes(gridcolor=grid, zerolinecolor=grid)
+    fig.update_xaxes(gridcolor=grid, zerolinecolor=axis_line, linecolor=axis_line, tickfont=dict(size=12), title_font=dict(size=13))
+    fig.update_yaxes(gridcolor=grid, zerolinecolor=axis_line, linecolor=axis_line, tickfont=dict(size=12), title_font=dict(size=13))
     return fig
 
 
@@ -42,7 +44,12 @@ def risk_distribution_chart(df: pd.DataFrame, theme_name: str):
         color_discrete_map=RISK_COLORS,
         hole=0.45,
     )
-    fig.update_traces(textinfo="percent+label")
+    fig.update_traces(
+        textinfo="percent+label",
+        marker=dict(line=dict(color="#FFFFFF" if theme_name != "Oscuro" else "#0F172A", width=2)),
+        sort=False,
+    )
+    fig.update_layout(title="Distribución de estudiantes por nivel de riesgo")
     return _apply_theme(fig, theme_name)
 
 
@@ -57,7 +64,12 @@ def probability_histogram(df: pd.DataFrame, theme_name: str):
     )
     median = float(df["probabilidad"].median()) if len(df) else 0
     fig.add_vline(x=median, line_dash="dash", line_color="#F97316", annotation_text="Mediana")
-    fig.update_layout(bargap=0.06, xaxis_title="Probabilidad de reprobar", yaxis_title="Numero de estudiantes")
+    fig.update_layout(
+        title="Distribución de probabilidades estimadas",
+        bargap=0.06,
+        xaxis_title="Probabilidad estimada de reprobar",
+        yaxis_title="Número de estudiantes",
+    )
     return _apply_theme(fig, theme_name)
 
 
@@ -84,22 +96,37 @@ def cp_scatter(cp1_df: pd.DataFrame, cp2_df: pd.DataFrame, theme_name: str):
             showlegend=False,
         )
     )
-    fig.update_layout(margin=dict(l=10, r=10, t=20, b=10), xaxis_title="Prob. CP1", yaxis_title="Prob. CP2")
+    fig.update_layout(
+        title="Comparación de probabilidad entre Checkpoint 1 y Checkpoint 2",
+        margin=dict(l=10, r=10, t=48, b=10),
+        xaxis_title="Probabilidad en Checkpoint 1",
+        yaxis_title="Probabilidad en Checkpoint 2",
+    )
     return _apply_theme(fig, theme_name), merged
 
 
 def feature_importance_chart(df_factors: pd.DataFrame, theme_name: str):
     fig = px.bar(
         df_factors.iloc[::-1],
-        x="magnitud",
+        x="impacto",
         y="feature_label",
         orientation="h",
         color="direccion",
         color_discrete_map={"incrementa": "#EF4444", "reduce": "#10B981"},
         text="sentido",
     )
-    fig.update_layout(xaxis_title="Magnitud del efecto local", yaxis_title="")
-    fig.update_traces(textposition="outside", hovertemplate="%{y}<br>Magnitud: %{x:.3f}<br>%{text}<extra></extra>")
+    max_abs = float(np.abs(df_factors["impacto"]).max()) if len(df_factors) else 1.0
+    fig.update_layout(
+        title="Contribución de variables a la predicción",
+        xaxis_title="Contribución al riesgo estimado",
+        yaxis_title="",
+    )
+    fig.update_xaxes(range=[-(max_abs * 1.2), max_abs * 1.2], zeroline=True, zerolinewidth=2)
+    fig.update_traces(
+        textposition="outside",
+        cliponaxis=False,
+        hovertemplate="%{y}<br>Contribución: %{x:.3f}<br>%{text}<extra></extra>",
+    )
     return _apply_theme(fig, theme_name)
 
 
@@ -109,10 +136,11 @@ def cohort_heatmap(df: pd.DataFrame, numeric_cols: list[str], theme_name: str):
         corr,
         text_auto=True,
         aspect="auto",
-        color_continuous_scale=["#1D4ED8", "#FFFFFF", "#DC2626"],
+        color_continuous_scale=["#0F766E", "#F8FAFC", "#B91C1C"],
         zmin=-1,
         zmax=1,
     )
+    fig.update_layout(title="Correlación entre variables del modelo", coloraxis_colorbar_title="Correlación")
     return _apply_theme(fig, theme_name)
 
 
@@ -121,7 +149,7 @@ def metric_comparison_figure(old_metrics: dict, new_metrics: dict, theme_name: s
     fig = go.Figure()
     fig.add_bar(name="Actual", x=metric_names, y=[old_metrics.get(m, 0) for m in metric_names], marker_color="#CBD5E1")
     fig.add_bar(name="Nuevo", x=metric_names, y=[new_metrics.get(m, 0) for m in metric_names], marker_color="#2563EB")
-    fig.update_layout(barmode="group", yaxis_title="Valor")
+    fig.update_layout(title="Comparación de métricas del modelo", barmode="group", yaxis_title="Valor")
     return _apply_theme(fig, theme_name)
 
 
@@ -143,5 +171,5 @@ def small_probability_gauge(value: float, theme_name: str):
             },
         )
     )
-    fig.update_layout(height=180, margin=dict(l=20, r=20, t=10, b=10), paper_bgcolor="#121A2B" if dark else "#FFFFFF")
+    fig.update_layout(height=180, margin=dict(l=20, r=20, t=10, b=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     return fig

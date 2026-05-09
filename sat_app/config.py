@@ -209,6 +209,23 @@ def build_base_style(theme_name: str) -> str:
         padding-bottom: 2rem;
         max-width: 1380px;
     }}
+    @media (max-width: 900px) {{
+        .main .block-container {{
+            padding-top: 0.8rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }}
+        .sat-hero {{
+            padding: 22px 20px;
+            border-radius: 18px;
+        }}
+        .sat-card, .sat-stat, .sat-note {{
+            border-radius: 16px;
+        }}
+        .sat-model-card {{
+            min-height: auto !important;
+        }}
+    }}
     [data-testid="stSidebar"] {{
         background: {light["panel"]};
         border-right: 1px solid {light["border"]};
@@ -346,6 +363,68 @@ def build_base_style(theme_name: str) -> str:
         border-radius: 14px;
         overflow: hidden;
     }}
+    .sat-model-card {{
+        min-height: 280px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, filter 0.18s ease;
+    }}
+    .sat-model-card.is-selected {{
+        border-width: 2px;
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(37, 99, 235, 0.22);
+    }}
+    .sat-model-card.is-dimmed {{
+        opacity: 0.58;
+        filter: saturate(0.72);
+    }}
+    .sat-model-highlight {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.85rem;
+        margin: 0.8rem 0 1rem 0;
+    }}
+    .sat-metric-tile {{
+        background: var(--sat-panel-alt);
+        border: 1px solid var(--sat-border);
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+    }}
+    .sat-metric-value {{
+        font-size: 1.55rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }}
+    .sat-metric-label {{
+        color: var(--sat-muted);
+        font-size: 0.88rem;
+        margin-top: 0.25rem;
+    }}
+    .sat-params-table {{
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--sat-border);
+        border-radius: 14px;
+        overflow: hidden;
+    }}
+    .sat-params-table th, .sat-params-table td {{
+        text-align: left;
+        padding: 0.8rem 0.9rem;
+        border-bottom: 1px solid var(--sat-border);
+        vertical-align: top;
+    }}
+    .sat-params-table th {{
+        background: var(--sat-panel-alt);
+        font-size: 0.85rem;
+    }}
+    .sat-params-table tr:last-child td {{
+        border-bottom: none;
+    }}
+    .sat-checkpoint-banner {{
+        background: linear-gradient(135deg, rgba(0,61,122,0.12), rgba(59,130,246,0.08));
+        border: 1px solid var(--sat-border);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1rem;
+    }}
 </style>
 """
     theme = THEMES.get(theme_name, THEMES["Claro"])
@@ -375,6 +454,23 @@ def build_base_style(theme_name: str) -> str:
         padding-top: 1.2rem;
         padding-bottom: 2rem;
         max-width: 1380px;
+    }}
+    @media (max-width: 900px) {{
+        .main .block-container {{
+            padding-top: 0.8rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }}
+        .sat-hero {{
+            padding: 22px 20px;
+            border-radius: 18px;
+        }}
+        .sat-card, .sat-stat, .sat-note {{
+            border-radius: 16px;
+        }}
+        .sat-model-card {{
+            min-height: auto !important;
+        }}
     }}
     [data-testid="stSidebar"] {{
         background: {theme["panel"]};
@@ -546,18 +642,14 @@ def build_base_style(theme_name: str) -> str:
         height: 30px !important;
     }}
 
-    /* Default progress bar color */
     [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr [role="progressbar"] > div {{
         background-color: #94A3B8 !important;
     }}
 
-    /* Color by risk level - using nth-child selectors */
-    /* Row with ALTO in last column */
     [data-testid="stDataFrame"] [data-baseweb="table"] tbody tr:has(td:last-child) [role="progressbar"] > div {{
         background-color: #EF4444 !important;
     }}
 
-    /* Specific selectors for each risk level based on cell content */
     [role="progressbar"][data-risk="ALTO"] > div {{
         background-color: #EF4444 !important;
     }}
@@ -570,14 +662,67 @@ def build_base_style(theme_name: str) -> str:
         background-color: #10B981 !important;
     }}
 
-    /* Active model button styling */
-    button:has-text("✓ Modelo activo") {{
-        background-color: #E5E7EB !important;
-        color: #1F2937 !important;
+    .sat-model-card {{
+        min-height: 280px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease, filter 0.18s ease;
     }}
-
-    button:has-text("✓ Modelo activo"):hover {{
-        background-color: #D1D5DB !important;
+    .sat-model-card.is-selected {{
+        border-width: 2px;
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(37, 99, 235, 0.22);
+    }}
+    .sat-model-card.is-dimmed {{
+        opacity: 0.58;
+        filter: saturate(0.72);
+    }}
+    .sat-model-highlight {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.85rem;
+        margin: 0.8rem 0 1rem 0;
+    }}
+    .sat-metric-tile {{
+        background: var(--sat-panel-alt);
+        border: 1px solid var(--sat-border);
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+    }}
+    .sat-metric-value {{
+        font-size: 1.55rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }}
+    .sat-metric-label {{
+        color: var(--sat-muted);
+        font-size: 0.88rem;
+        margin-top: 0.25rem;
+    }}
+    .sat-params-table {{
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid var(--sat-border);
+        border-radius: 14px;
+        overflow: hidden;
+    }}
+    .sat-params-table th, .sat-params-table td {{
+        text-align: left;
+        padding: 0.8rem 0.9rem;
+        border-bottom: 1px solid var(--sat-border);
+        vertical-align: top;
+    }}
+    .sat-params-table th {{
+        background: var(--sat-panel-alt);
+        font-size: 0.85rem;
+    }}
+    .sat-params-table tr:last-child td {{
+        border-bottom: none;
+    }}
+    .sat-checkpoint-banner {{
+        background: linear-gradient(135deg, rgba(0,61,122,0.12), rgba(59,130,246,0.08));
+        border: 1px solid var(--sat-border);
+        border-radius: 18px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1rem;
     }}
 </style>
 """
