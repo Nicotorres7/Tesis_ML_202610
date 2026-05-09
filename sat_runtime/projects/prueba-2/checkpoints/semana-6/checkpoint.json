@@ -1,0 +1,20 @@
+{
+  "checkpoint_id": "5dd140660db447e9b822fa45f893f76c",
+  "project_id": "8633c5b6b6054484a2b3ffd37e1bc96b",
+  "slug": "semana-6",
+  "name": "Semana 6",
+  "description": "",
+  "dataset_ref": "curso_desercion_cp2_train.csv",
+  "id_column": "id_estudiante",
+  "name_column": "nombre",
+  "target_column": "reprobo",
+  "numeric_features": [
+    "parcial_1",
+    "engagement_hasta_p1"
+  ],
+  "categorical_features": [
+    "era"
+  ],
+  "created_at": "2026-05-08T22:18:01",
+  "updated_at": "2026-05-08T22:22:29"
+}

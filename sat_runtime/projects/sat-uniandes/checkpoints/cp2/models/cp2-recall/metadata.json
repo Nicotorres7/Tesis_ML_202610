@@ -1,0 +1,41 @@
+{
+  "model_id": "cp2-recall",
+  "project_id": "76d3b9ed19cf421883990d80a2c57a08",
+  "checkpoint_id": "025f6a64329b480eb32e2965b3998567",
+  "version": 3,
+  "label": "Checkpoint 2 · RECALL",
+  "algorithm": "DT",
+  "objective_metric": "recall",
+  "threshold": 0.34,
+  "metrics": {
+    "AUC": 0.8658,
+    "AUC_s": 0.0297,
+    "Recall": 0.9317,
+    "Rec_s": 0.0827,
+    "Prec": 0.5359,
+    "F1": 0.6724,
+    "F1_s": 0.0832
+  },
+  "hyperparameters": {
+    "min_samples_split": 15,
+    "min_samples_leaf": 8,
+    "max_depth": 2,
+    "criterion": "entropy",
+    "class_weight": "balanced",
+    "ccp_alpha": 0.02,
+    "random_state": 42
+  },
+  "search_config": {
+    "mode": "legacy_import",
+    "space": {},
+    "iterations": 0
+  },
+  "validation_config": {
+    "mode": "legacy_loso",
+    "group_column": "semestre"
+  },
+  "dataset_ref": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\notebooks\\modelos_finales\\cp2semana11_metadata.json",
+  "artifact_path": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\sat_runtime\\projects\\sat-uniandes\\checkpoints\\cp2\\models\\cp2-recall\\model.joblib",
+  "is_active": false,
+  "created_at": "2026-05-04T12:04:02"
+}

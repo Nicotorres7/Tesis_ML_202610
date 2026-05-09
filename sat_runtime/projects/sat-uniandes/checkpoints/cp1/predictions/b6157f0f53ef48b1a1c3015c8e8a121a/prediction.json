@@ -1,0 +1,15 @@
+{
+  "prediction_id": "b6157f0f53ef48b1a1c3015c8e8a121a",
+  "project_id": "76d3b9ed19cf421883990d80a2c57a08",
+  "checkpoint_id": "a7a39b83192d41939f543d9250bb23e9",
+  "model_id": "cp1-f1",
+  "dataset_ref": "ejemplo_prueba_sat.csv",
+  "columns_validated": [
+    "parcial_1",
+    "log_eng_p1",
+    "era_encoded"
+  ],
+  "row_count": 8,
+  "export_refs": {},
+  "created_at": "2026-05-07T21:25:04"
+}

@@ -1,0 +1,20 @@
+{
+  "prediction_id": "2ca0417218bb4c9185671603d2136ddd",
+  "project_id": "367dc1cb44e84abbb4702e40bf232389",
+  "checkpoint_id": "8e1f2f02f10e481fa9d0a6a1ff957705",
+  "model_id": "70e7bbf5d9e4",
+  "dataset_ref": "curso_desercion_cp1_eval.csv",
+  "columns_validated": [
+    "parcial_1",
+    "engagement_hasta_p1",
+    "promedio_ams",
+    "promedio_quices",
+    "era"
+  ],
+  "row_count": 30,
+  "export_refs": {
+    "pdf": "prueba-1_semana-4_70e7bbf5d9e4.pdf",
+    "excel": "prueba-1_semana-4_70e7bbf5d9e4.xlsx"
+  },
+  "created_at": "2026-05-08T20:51:26"
+}

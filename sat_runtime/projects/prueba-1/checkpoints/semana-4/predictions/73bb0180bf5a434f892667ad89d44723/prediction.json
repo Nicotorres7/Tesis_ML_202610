@@ -1,0 +1,17 @@
+{
+  "prediction_id": "73bb0180bf5a434f892667ad89d44723",
+  "project_id": "367dc1cb44e84abbb4702e40bf232389",
+  "checkpoint_id": "8e1f2f02f10e481fa9d0a6a1ff957705",
+  "model_id": "70e7bbf5d9e4",
+  "dataset_ref": "curso_desercion_cp1_eval.csv",
+  "columns_validated": [
+    "parcial_1",
+    "engagement_hasta_p1",
+    "promedio_ams",
+    "promedio_quices",
+    "era"
+  ],
+  "row_count": 30,
+  "export_refs": {},
+  "created_at": "2026-05-08T22:29:49"
+}

@@ -1,0 +1,22 @@
+{
+  "checkpoint_id": "8e1f2f02f10e481fa9d0a6a1ff957705",
+  "project_id": "367dc1cb44e84abbb4702e40bf232389",
+  "slug": "semana-4",
+  "name": "Semana 4",
+  "description": "",
+  "dataset_ref": "curso_desercion_cp1_train.csv",
+  "id_column": "id_estudiante",
+  "name_column": "nombre",
+  "target_column": "reprobo",
+  "numeric_features": [
+    "parcial_1",
+    "engagement_hasta_p1",
+    "promedio_ams",
+    "promedio_quices"
+  ],
+  "categorical_features": [
+    "era"
+  ],
+  "created_at": "2026-05-07T21:53:48",
+  "updated_at": "2026-05-07T22:05:23"
+}

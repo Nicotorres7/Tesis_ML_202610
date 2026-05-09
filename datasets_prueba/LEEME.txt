@@ -1,0 +1,83 @@
+📚 DATASETS PARA PROBAR SAT APP
+================================
+
+Esta carpeta contiene datasets ficticios para entrenar y probar la aplicación SAT.
+
+ESTRUCTURA:
+-----------
+
+CURSO: "Análisis de Deserción Estudiantil"
+├── CHECKPOINT 1: "Semana 4"
+│   ├── curso_desercion_cp1_train.csv (100 estudiantes)
+│   └── curso_desercion_cp1_eval.csv (30 estudiantes)
+│
+└── CHECKPOINT 2: "Semana 8"
+    ├── curso_desercion_cp2_train.csv (150 estudiantes)
+    └── curso_desercion_cp2_eval.csv (50 estudiantes)
+
+COLUMNS INCLUIDAS EN TODOS LOS DATASETS:
+-----------------------------------------
+- id_estudiante: ID único del estudiante (auto_001, auto_002, etc.)
+- nombre: [Anonimo] (anónimos por defecto)
+- era: Modalidad pedagógica (Presencial, Híbrida, Virtual)
+- parcial_1: Nota del primer parcial (0-5)
+- parcial_2: Nota del segundo parcial (0-5, solo en CP2)
+- engagement_hasta_p1: Engagement/asistencia hasta parcial 1 (0-100)
+- engagement_hasta_p2: Engagement/asistencia hasta parcial 2 (0-100, solo en CP2)
+- parcial_1_modulos_unicos: Módulos únicos visitados (1-20)
+- parcial_1_temas_unicos: Temas únicos visitados (5-50)
+- parcial_1_visitas: Total de visitas (10-500)
+- parcial_1_visitas_por_tema: Promedio de visitas por tema (1-20)
+- parcial_1_tiempo_por_visita: Tiempo promedio por visita en minutos (2-30)
+- promedio_ams: Promedio en actividades (0-5)
+- promedio_quices: Promedio en quices (0-5)
+- reprobo: TARGET (0 = aprobó, 1 = reprobó/se fue)
+
+COLUMNA TARGET: "reprobo"
+----------------------------
+Valores: 0 (aprobó) o 1 (reprobó/se fue)
+Distribución aproximada: 65% aprobó, 35% reprobó
+
+CÓMO USAR:
+----------
+
+1. Abre la app SAT: streamlit run main.py
+2. Ve a "Proyectos" y crea uno nuevo:
+   Nombre: "Análisis de Deserción Estudiantil"
+   Descripción: "Predicción de riesgo de deserción estudiantil"
+
+3. Ve a "Entrenamiento":
+   - Crea Checkpoint 1 "Semana 4"
+   - Sube: curso_desercion_cp1_train.csv
+   - Columna ID: id_estudiante
+   - Columna Nombre: nombre
+   - Target: reprobo
+   - Features numéricas: parcial_1, engagement_hasta_p1, parcial_1_modulos_unicos,
+                         parcial_1_temas_unicos, parcial_1_visitas,
+                         parcial_1_visitas_por_tema, parcial_1_tiempo_por_visita,
+                         promedio_ams, promedio_quices
+   - Features categóricas: era
+   - Entrena el modelo
+
+   - Crea Checkpoint 2 "Semana 8"
+   - Sube: curso_desercion_cp2_train.csv
+   - (Mismo mapeo anterior, pero ahora con parcial_2 y engagement_hasta_p2)
+   - Entrena con más features
+
+4. Ve a "Predicción":
+   - Sube los CSVs de evaluación
+   - Mira las predicciones y probabilidades por estudiante
+
+5. Ve a "Dashboard":
+   - Analiza distribuciones de riesgo
+   - Compara por modalidad (ERA)
+   - Ve feature importance
+
+NOTAS:
+------
+- Los datos son completamente ficticios y generados proceduralmente
+- Los datos están diseñados para ser realistas pero sintéticos
+- El target tiene correlación con engagement y notas (como en la realidad)
+- Puedes usar estos datasets para explorar toda la funcionalidad de la app
+
+¡A probar!

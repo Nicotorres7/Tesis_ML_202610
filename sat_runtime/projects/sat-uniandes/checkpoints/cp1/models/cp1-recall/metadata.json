@@ -1,0 +1,47 @@
+{
+  "model_id": "cp1-recall",
+  "project_id": "76d3b9ed19cf421883990d80a2c57a08",
+  "checkpoint_id": "a7a39b83192d41939f543d9250bb23e9",
+  "version": 3,
+  "label": "Checkpoint 1 · RECALL",
+  "algorithm": "XGB",
+  "objective_metric": "recall",
+  "threshold": 0.68,
+  "metrics": {
+    "AUC": 0.8143,
+    "AUC_s": 0.0725,
+    "Recall": 0.8061,
+    "Rec_s": 0.1332,
+    "Prec": 0.5189,
+    "F1": 0.6132,
+    "F1_s": 0.0567
+  },
+  "hyperparameters": {
+    "subsample": 1.0,
+    "scale_pos_weight": 4,
+    "reg_lambda": 5,
+    "reg_alpha": 0.1,
+    "n_estimators": 150,
+    "min_child_weight": 3,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "colsample_bytree": 0.8,
+    "use_label_encoder": false,
+    "eval_metric": "logloss",
+    "verbosity": 0,
+    "random_state": 42
+  },
+  "search_config": {
+    "mode": "legacy_import",
+    "space": {},
+    "iterations": 0
+  },
+  "validation_config": {
+    "mode": "legacy_loso",
+    "group_column": "semestre"
+  },
+  "dataset_ref": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\notebooks\\modelos_finales\\cp1semana6_metadata.json",
+  "artifact_path": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\sat_runtime\\projects\\sat-uniandes\\checkpoints\\cp1\\models\\cp1-recall\\model.joblib",
+  "is_active": false,
+  "created_at": "2026-05-04T12:04:01"
+}

@@ -63,6 +63,16 @@ def ensure_identity_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def standardize_prediction_identity(df: pd.DataFrame, id_column: str, name_column: str) -> pd.DataFrame:
+    out = df.copy()
+    out["id"] = out[id_column].astype(str)
+    out["name"] = out[name_column].fillna("").astype(str).str.strip()
+    out["name"] = out["name"].where(out["name"] != "", "[Anonimo]")
+    out["student_key"] = out["id"].astype(str).apply(short_hash)
+    out["student_label"] = out["name"]
+    return out
+
+
 def short_hash(value: Any) -> str:
     digest = hashlib.sha256(str(value).encode("utf-8")).hexdigest()
     return f"0x{digest[:4]}"
@@ -83,3 +93,80 @@ def dataset_warnings(df: pd.DataFrame, required_cols: list[str]) -> list[str]:
             if missing:
                 warnings.append(f"{missing} registros sin {col.replace('_', ' ')}")
     return warnings[:5]
+
+
+def validate_binary_target(df: pd.DataFrame, target_column: str) -> tuple[bool, str]:
+    if target_column not in df.columns:
+        return False, f"No existe la columna objetivo '{target_column}'."
+    values = pd.to_numeric(df[target_column], errors="coerce").dropna().astype(int)
+    unique = sorted(values.unique().tolist())
+    if not unique:
+        return False, "La columna objetivo no contiene valores válidos."
+    if any(value not in {0, 1} for value in unique):
+        return False, f"El target debe ser binario 0/1. Valores detectados: {unique}."
+    if len(unique) < 2:
+        return False, "El target debe contener al menos las dos clases 0 y 1."
+    return True, ""
+
+
+def validate_role_columns(
+    columns: list[str],
+    id_column: str,
+    name_column: str,
+    target_column: str,
+    numeric_features: list[str],
+    categorical_features: list[str],
+) -> list[str]:
+    errors: list[str] = []
+    required = [("ID", id_column), ("Nombre", name_column), ("Target", target_column)]
+    for label, column in required:
+        if not column:
+            errors.append(f"Debes seleccionar la columna de {label.lower()}.")
+        elif column not in columns:
+            errors.append(f"La columna de {label.lower()} '{column}' no existe en el dataset.")
+
+    if id_column and name_column and id_column == name_column:
+        errors.append("Las columnas de ID y nombre deben ser distintas.")
+    if target_column and target_column in {id_column, name_column}:
+        errors.append("El target no puede coincidir con ID ni con nombre.")
+
+    if not numeric_features and not categorical_features:
+        errors.append("Debes seleccionar al menos una feature numérica o categórica.")
+
+    overlap = sorted(set(numeric_features) & set(categorical_features))
+    if overlap:
+        errors.append("Una columna no puede ser numérica y categórica al tiempo: " + ", ".join(overlap))
+
+    forbidden = {id_column, name_column, target_column}
+    bad_numeric = sorted(set(numeric_features) & forbidden)
+    bad_categorical = sorted(set(categorical_features) & forbidden)
+    if bad_numeric:
+        errors.append("Las features numéricas no pueden incluir ID/nombre/target: " + ", ".join(bad_numeric))
+    if bad_categorical:
+        errors.append("Las features categóricas no pueden incluir ID/nombre/target: " + ", ".join(bad_categorical))
+
+    for column in [*numeric_features, *categorical_features]:
+        if column not in columns:
+            errors.append(f"La feature '{column}' no existe en el dataset.")
+    return errors
+
+
+def feature_quality_warnings(
+    df: pd.DataFrame,
+    numeric_features: list[str],
+    categorical_features: list[str],
+) -> list[str]:
+    warnings: list[str] = []
+    for column in numeric_features:
+        missing_ratio = float(df[column].isna().mean()) if column in df.columns else 0.0
+        if missing_ratio > 0.30:
+            warnings.append(f"La feature numérica '{column}' tiene {missing_ratio:.0%} de nulos.")
+    for column in categorical_features:
+        missing_ratio = float(df[column].isna().mean()) if column in df.columns else 0.0
+        if missing_ratio > 0.30:
+            warnings.append(f"La feature categórica '{column}' tiene {missing_ratio:.0%} de nulos.")
+        if column in df.columns:
+            nunique = int(df[column].nunique(dropna=True))
+            if nunique > min(50, max(10, len(df) // 4)):
+                warnings.append(f"La feature categórica '{column}' tiene alta cardinalidad ({nunique} valores).")
+    return warnings[:8]

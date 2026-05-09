@@ -1,0 +1,47 @@
+{
+  "model_id": "cp2-precision",
+  "project_id": "76d3b9ed19cf421883990d80a2c57a08",
+  "checkpoint_id": "025f6a64329b480eb32e2965b3998567",
+  "version": 1,
+  "label": "Checkpoint 2 · PRECISION",
+  "algorithm": "XGB",
+  "objective_metric": "precision",
+  "threshold": 0.716,
+  "metrics": {
+    "AUC": 0.9113,
+    "AUC_s": 0.0513,
+    "Recall": 0.7048,
+    "Rec_s": 0.1099,
+    "Prec": 0.8455,
+    "F1": 0.764,
+    "F1_s": 0.0975
+  },
+  "hyperparameters": {
+    "subsample": 0.6,
+    "scale_pos_weight": 4,
+    "reg_lambda": 1,
+    "reg_alpha": 0.5,
+    "n_estimators": 150,
+    "min_child_weight": 5,
+    "max_depth": 2,
+    "learning_rate": 0.2,
+    "colsample_bytree": 0.6,
+    "use_label_encoder": false,
+    "eval_metric": "logloss",
+    "verbosity": 0,
+    "random_state": 42
+  },
+  "search_config": {
+    "mode": "legacy_import",
+    "space": {},
+    "iterations": 0
+  },
+  "validation_config": {
+    "mode": "legacy_loso",
+    "group_column": "semestre"
+  },
+  "dataset_ref": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\notebooks\\modelos_finales\\cp2semana11_metadata.json",
+  "artifact_path": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\sat_runtime\\projects\\sat-uniandes\\checkpoints\\cp2\\models\\cp2-precision\\model.joblib",
+  "is_active": false,
+  "created_at": "2026-05-04T12:04:01"
+}

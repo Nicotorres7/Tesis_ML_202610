@@ -62,7 +62,8 @@ def summary_pdf_bytes(df: pd.DataFrame, title: str, subtitle: str) -> bytes:
         ]
         ax.text(0.02, 0.80, "\n".join(lines), fontsize=12, va="top")
 
-        sample = df[["student_key", "probabilidad", "nivel_riesgo"]].head(12)
+        sample_cols = [col for col in ["id", "name", "student_key", "probabilidad", "nivel_riesgo"] if col in df.columns]
+        sample = df[sample_cols].head(12)
         table_text = sample.to_string(index=False)
         ax.text(0.02, 0.64, "Top registros visibles", fontsize=13, fontweight="bold")
         ax.text(0.02, 0.60, table_text, fontsize=9, family="monospace", va="top")

@@ -1,0 +1,9 @@
+{
+  "project_id": "76d3b9ed19cf421883990d80a2c57a08",
+  "slug": "sat-uniandes",
+  "name": "Modelos Probabilisticos",
+  "description": "Proyecto base migrado desde los modelos historicos del curso Modelos Probabilisticos.",
+  "legacy_sat": true,
+  "created_at": "2026-05-04T12:03:58",
+  "updated_at": "2026-05-08T22:41:32"
+}

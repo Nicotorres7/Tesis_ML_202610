@@ -1,0 +1,15 @@
+{
+  "checkpoint_id": "025f6a64329b480eb32e2965b3998567",
+  "project_id": "76d3b9ed19cf421883990d80a2c57a08",
+  "slug": "cp2",
+  "name": "Checkpoint 2",
+  "description": "Modelo historico del SAT para semana 11.",
+  "dataset_ref": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\notebooks\\modelos_finales\\cp2semana11_metadata.json",
+  "id_column": "id_estudiante",
+  "name_column": "nombre",
+  "target_column": "reprobo",
+  "numeric_features": [],
+  "categorical_features": [],
+  "created_at": "2026-05-04T12:04:01",
+  "updated_at": "2026-05-04T12:04:01"
+}
