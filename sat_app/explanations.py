@@ -17,7 +17,8 @@ def _base_feature_name(transformed_name: str) -> str:
         return transformed_name.split("num__", 1)[1]
     if transformed_name.startswith("cat__"):
         rest = transformed_name.split("cat__", 1)[1]
-        return rest.split("_", 1)[0]
+        parts = rest.rsplit("_", 1)
+        return parts[0] if len(parts) > 1 else rest
     return transformed_name
 
 
@@ -35,6 +36,8 @@ def top_student_factors(artifact: dict[str, Any], df_features: pd.DataFrame, ind
     transformed_names = schema.get("transformed_feature_names") or feature_order
     X = df_features[feature_order].copy()
     X_t = artifact["preprocessor"].transform(X)
+    if hasattr(X_t, 'toarray'):
+        X_t = X_t.toarray()
     model = artifact["model"]
     row_position = df_features.index.get_loc(index)
 

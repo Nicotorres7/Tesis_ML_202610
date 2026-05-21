@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile sat_app/ui.py sat_app/data.py sat_app/training.py sat_app/inference.py sat_app/explanations.py sat_app/registry.py sat_app/legacy_sat_import.py)",
+      "Bash(cat)",
+      "Read(//tmp/**)"
+    ]
+  }
+}

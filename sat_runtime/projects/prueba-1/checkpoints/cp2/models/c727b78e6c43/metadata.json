@@ -1,0 +1,56 @@
+{
+  "model_id": "c727b78e6c43",
+  "project_id": "367dc1cb44e84abbb4702e40bf232389",
+  "checkpoint_id": "7d9c77447b834f67b56424f5f8a7cc3a",
+  "version": 1,
+  "label": "LR · F1",
+  "algorithm": "LR",
+  "objective_metric": "f1",
+  "threshold": 0.3,
+  "metrics": {
+    "AUC": 1.0,
+    "Recall": 1.0,
+    "Prec": 1.0,
+    "F1": 1.0
+  },
+  "hyperparameters": {
+    "C": 0.1,
+    "penalty": "l1",
+    "solver": "saga",
+    "max_iter": 3000
+  },
+  "search_config": {
+    "mode": "auto",
+    "space": {
+      "C": [
+        0.1,
+        0.5,
+        1.0,
+        2.0,
+        5.0
+      ],
+      "penalty": [
+        "l1",
+        "l2"
+      ],
+      "solver": [
+        "liblinear",
+        "saga"
+      ],
+      "max_iter": [
+        2000,
+        3000
+      ]
+    },
+    "iterations": 8
+  },
+  "validation_config": {
+    "mode": "Holdout",
+    "group_column": "",
+    "holdout_size": 0.2
+  },
+  "dataset_ref": "curso_desercion_cp2_train.csv",
+  "artifact_path": "C:\\Users\\nicot\\OneDrive\\Documentos\\Trabajo\\Tesis_ML_202610\\sat_runtime\\projects\\prueba-1\\checkpoints\\cp2\\models\\c727b78e6c43\\model.joblib",
+  "is_active": true,
+  "created_at": "2026-05-19T18:53:23"
+}

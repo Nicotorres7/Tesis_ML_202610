@@ -159,8 +159,12 @@ def _balance_transformed(X, y, balancing: str, random_state: int):
 
 def _compute_metrics(y_true: np.ndarray, scores: np.ndarray, threshold: float) -> dict[str, float]:
     preds = (scores >= threshold).astype(int)
+    try:
+        auc = float(roc_auc_score(y_true, scores))
+    except ValueError:
+        auc = 0.5
     return {
-        "AUC": float(roc_auc_score(y_true, scores)),
+        "AUC": auc,
         "Recall": float(recall_score(y_true, preds, zero_division=0)),
         "Prec": float(precision_score(y_true, preds, zero_division=0)),
         "F1": float(f1_score(y_true, preds, zero_division=0)),

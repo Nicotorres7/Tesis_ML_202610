@@ -147,7 +147,11 @@ def save_project(record: ProjectRecord) -> None:
 def list_projects() -> list[ProjectRecord]:
     items: list[ProjectRecord] = []
     for path in sorted(PROJECTS_DIR.glob("*/project.json")):
-        items.append(ProjectRecord(**_read_json(path)))
+        try:
+            items.append(ProjectRecord(**_read_json(path)))
+        except (json.JSONDecodeError, TypeError) as e:
+            import warnings
+            warnings.warn(f"Archivo corrupto ignorado: {path} — {e}")
     return items
 
 
@@ -198,7 +202,11 @@ def save_checkpoint(project_slug: str, record: CheckpointRecord) -> None:
 def list_checkpoints(project_slug: str) -> list[CheckpointRecord]:
     items: list[CheckpointRecord] = []
     for path in sorted(checkpoints_dir(project_slug).glob("*/checkpoint.json")):
-        items.append(CheckpointRecord(**_read_json(path)))
+        try:
+            items.append(CheckpointRecord(**_read_json(path)))
+        except (json.JSONDecodeError, TypeError) as e:
+            import warnings
+            warnings.warn(f"Archivo corrupto ignorado: {path} — {e}")
     return items
 
 
@@ -230,14 +238,15 @@ def get_model_record(project_slug: str, checkpoint_slug: str, model_id: str) -> 
 
 def activate_model(project_slug: str, checkpoint_slug: str, model_id: str) -> ModelRecord:
     active: ModelRecord | None = None
-    for item in list_models(project_slug, checkpoint_slug):
-        item.is_active = item.model_id == model_id
-        save_model_record(project_slug, checkpoint_slug, item)
-        if item.is_active:
-            active = item
-    if active is None:
+    models = list_models(project_slug, checkpoint_slug)
+    target_model = next((m for m in models if m.model_id == model_id), None)
+    if target_model is None:
         raise FileNotFoundError(f"Model {model_id} not found")
-    return active
+    for item in models:
+        item.is_active = (item.model_id == model_id)
+        save_model_record(project_slug, checkpoint_slug, item)
+    target_model.is_active = True
+    return target_model
 
 
 def get_active_model(project_slug: str, checkpoint_slug: str) -> ModelRecord | None:

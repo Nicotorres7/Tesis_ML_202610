@@ -27,8 +27,9 @@ def validate_prediction_dataframe(df: pd.DataFrame, artifact: dict[str, Any]) ->
 
 
 def _risk_levels(probabilities: np.ndarray) -> pd.Series:
+    probs_clean = np.where(np.isnan(probabilities), 0.5, probabilities)
     return pd.cut(
-        probabilities,
+        probs_clean,
         bins=[0.0, 0.35, 0.60, 1.0],
         labels=["BAJO", "MEDIO", "ALTO"],
         include_lowest=True,

@@ -104,10 +104,16 @@ def _legacy_artifact(bundle: dict[str, Any], metadata: dict[str, Any], project_i
 
 def ensure_legacy_sat_project() -> None:
     project = create_project(LEGACY_SAT_PROJECT_NAME, "Proyecto migrado desde el SAT histórico.", legacy_sat=True, slug=LEGACY_SAT_PROJECT_SLUG)
-    project.name = LEGACY_SAT_PROJECT_NAME
-    project.description = "Proyecto base migrado desde los modelos historicos del curso Modelos Probabilisticos."
-    project.legacy_sat = True
-    save_project(project)
+    needs_update = (
+        project.name != LEGACY_SAT_PROJECT_NAME or
+        project.description != "Proyecto base migrado desde los modelos historicos del curso Modelos Probabilisticos." or
+        project.legacy_sat != True
+    )
+    if needs_update:
+        project.name = LEGACY_SAT_PROJECT_NAME
+        project.description = "Proyecto base migrado desde los modelos historicos del curso Modelos Probabilisticos."
+        project.legacy_sat = True
+        save_project(project)
     for checkpoint_key, info in LEGACY_SAT_CHECKPOINTS.items():
         checkpoint = create_checkpoint(
             LEGACY_SAT_PROJECT_SLUG,

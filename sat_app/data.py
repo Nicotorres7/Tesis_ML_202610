@@ -12,11 +12,18 @@ from sat_app.config import ALIASES
 def load_uploaded_dataset(uploaded_file) -> pd.DataFrame:
     suffix = uploaded_file.name.lower().split(".")[-1]
     content = uploaded_file.getvalue()
-    if suffix == "csv":
-        return pd.read_csv(BytesIO(content))
-    if suffix in {"xlsx", "xls"}:
-        return pd.read_excel(BytesIO(content))
-    raise ValueError("Formato no soportado. Usa .csv o .xlsx.")
+    try:
+        if suffix == "csv":
+            return pd.read_csv(BytesIO(content))
+        if suffix in {"xlsx", "xls"}:
+            return pd.read_excel(BytesIO(content))
+        raise ValueError("Formato no soportado. Usa .csv o .xlsx.")
+    except ValueError:
+        raise
+    except (UnicodeDecodeError, pd.errors.ParserError) as e:
+        raise ValueError(f"Error al procesar el archivo: {e}") from e
+    except Exception as e:
+        raise ValueError(f"Error inesperado al cargar el archivo: {e}") from e
 
 
 def normalize_name(value: str) -> str:

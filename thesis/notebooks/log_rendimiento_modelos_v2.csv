@@ -1,5 +1,0 @@
-Nombre,Variables,F1-Score,Recall (Riesgo),Mejores Params
-CP1 - Logística Completa,"era_encoded, parcial_1, engagement_hasta_p1, am_1, am_2, quiz_1",0.6200873362445415,0.5503875968992248,"{'clf__C': 1, 'clf__penalty': 'l1'}"
-CP1 - Logística + Balanceo,"era_encoded, parcial_1, engagement_hasta_p1, am_1, am_2, quiz_1",0.6256983240223464,0.8682170542635659,"{'clf__C': 0.1, 'clf__penalty': 'l2'}"
-CP2 - Logística Completa,"era_encoded, parcial_1, parcial_2, engagement_hasta_p2, am_1, am_2, am_3, am_4, quiz_1, quiz_2, quiz_3",0.8064516129032258,0.7751937984496124,"{'clf__C': 1, 'clf__penalty': 'l2'}"
-CP2 - Árbol de Decisión,"era_encoded, parcial_1, parcial_2, engagement_hasta_p2, am_1, am_2, am_3, am_4, quiz_1, quiz_2, quiz_3",0.8376068376068376,0.7596899224806202,"{'clf__max_depth': 5, 'clf__min_samples_leaf': 5}"

@@ -135,6 +135,8 @@ def _set_project(slug: str) -> None:
     st.session_state.selected_model_id = ""
     st.session_state.training_step = 1
     st.session_state.training_success = None
+    st.session_state.prediction_dataset = None
+    st.session_state.latest_predictions = {}
 
 
 def _set_checkpoint(slug: str) -> None:
@@ -142,10 +144,15 @@ def _set_checkpoint(slug: str) -> None:
     st.session_state.selected_model_id = ""
     st.session_state.training_step = 1
     st.session_state.training_success = None
+    st.session_state.prediction_dataset = None
+    keys_to_remove = [k for k in st.session_state.latest_predictions.keys() if k.startswith(f"{st.session_state.selected_project_slug}:{slug}:")]
+    for k in keys_to_remove:
+        del st.session_state.latest_predictions[k]
 
 
 def _set_model(model_id: str) -> None:
     st.session_state.selected_model_id = model_id
+    st.session_state.prediction_dataset = None
 
 
 def _sync_top_project() -> None:
@@ -634,6 +641,24 @@ def _render_model_summary(record: ModelRecord, artifact: dict[str, Any]) -> None
         )
 
 
+@st.cache_data(max_entries=5)
+def _cached_excel_bytes(df_id: str, df_hash: str) -> bytes:
+    from sat_app.exporters import dataframe_to_excel_bytes
+    df = st.session_state.latest_predictions.get(df_id, {}).get("results")
+    if df is None:
+        return b""
+    return dataframe_to_excel_bytes(df[["id", "name", "probabilidad", "nivel_riesgo", "alerta", "umbral_modelo"]])
+
+
+@st.cache_data(max_entries=5)
+def _cached_pdf_bytes(df_id: str, df_hash: str, title: str, subtitle: str) -> bytes:
+    from sat_app.exporters import summary_pdf_bytes
+    df = st.session_state.latest_predictions.get(df_id, {}).get("results")
+    if df is None:
+        return b""
+    return summary_pdf_bytes(df[["id", "name", "probabilidad", "nivel_riesgo", "alerta", "umbral_modelo"]], title, subtitle)
+
+
 def _render_key_value_table(title: str, payload: dict[str, Any]) -> None:
     rows = []
     for key, value in payload.items():
@@ -748,7 +773,11 @@ def render_projects():
     if active_slug:
         try:
             project = get_project(active_slug)
-        except Exception:
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            st.error(f"Error al cargar el proyecto: {e}")
+            return
+        except Exception as e:
+            st.error(f"Error inesperado al cargar el proyecto: {e}")
             return
         st.markdown(f"### Detalle: {project.name}")
         checkpoints = list_checkpoints(project.slug)
@@ -871,8 +900,9 @@ def render_training():
             has_variables = True
 
     step = st.session_state.training_step
-    # Auto-advance only when variables are already fully configured (e.g. legacy checkpoints)
-    if has_variables and step < 4:
+    # Auto-advance to step 4 only if variables are configured AND dataset is loaded (or legacy checkpoint)
+    is_legacy = bool(checkpoint and get_active_model(project_slug, checkpoint_slug))
+    if has_variables and step < 4 and (has_dataset or is_legacy):
         st.session_state.training_step = 4
         step = 4
     _render_training_stepper(step, bool(checkpoint_slug), has_dataset, has_variables)
@@ -951,10 +981,14 @@ def render_training():
             help="Archivo con datos históricos de estudiantes incluyendo la variable objetivo (reprobó/pasó)",
         )
         if uploaded is not None:
-            df_loaded = load_uploaded_dataset(uploaded)
-            st.session_state.train_dataset = df_loaded
-            st.session_state.train_dataset_name = uploaded.name
-            has_dataset = True  # re-check after upload so button enables immediately
+            try:
+                df_loaded = load_uploaded_dataset(uploaded)
+                st.session_state.train_dataset = df_loaded
+                st.session_state.train_dataset_name = uploaded.name
+                has_dataset = True  # re-check after upload so button enables immediately
+            except ValueError as e:
+                st.error(f"Error al cargar el archivo: {e}")
+                return
 
         if has_dataset:
             df = st.session_state.train_dataset
@@ -1150,8 +1184,8 @@ def render_training():
         hyperparameter_mode = st.selectbox("Hiperparámetros", ["auto", "fixed"],
             format_func=lambda x: "Búsqueda automática (recomendado)" if x == "auto" else "Valores fijos")
         random_state = st.number_input("Semilla aleatoria", min_value=1, value=42)
-        holdout_size = st.slider("Proporción de prueba (Holdout)", min_value=0.1, max_value=0.4, value=0.2, step=0.05,
-            format="%.0f%%", help="Porcentaje del dataset reservado para evaluar el modelo")
+        holdout_size = st.slider("Proporción de prueba (Holdout)", min_value=10, max_value=40, value=20, step=5,
+            format="%d%%", help="Porcentaje del dataset reservado para evaluar el modelo") / 100.0
         search_iterations = st.slider("Combinaciones a explorar", min_value=4, max_value=20, value=8, step=2,
             help="Más iteraciones = mejor modelo potencial, pero más lento")
 
@@ -1237,7 +1271,7 @@ def render_training():
             search_iterations=int(search_iterations),
         )
 
-        with st.spinner(f"Entrenando modelo {algorithm} con {search_iterations} combinaciones... esto puede tardar unos segundos."):
+        with st.spinner(f"Entrenando modelo {algorithm} con {search_iterations} combinaciones... esto puede tardar {1 if algorithm == 'LR' else 2 if algorithm == 'DT' else 3}-{2 if algorithm == 'LR' else 3 if algorithm == 'DT' else 5} minutos."):
             artifact = train_model(df, config)
 
         record = ModelRecord(
@@ -1291,13 +1325,13 @@ def render_training():
         )
         m1, m2, m3, m4 = st.columns(4)
         with m1:
-            st.metric("AUC", f"{metrics.get('AUC', 0):.3f}")
+            st.metric("AUC", f"{metrics.get('AUC', 0):.3f}", help="Área bajo la curva ROC (0-1). Mide discriminación global del modelo.")
         with m2:
-            st.metric("Recall", f"{metrics.get('Recall', 0):.3f}")
+            st.metric("Recall", f"{metrics.get('Recall', 0):.3f}", help="Proporción de estudiantes en riesgo correctamente identificados.")
         with m3:
-            st.metric("Precisión", f"{metrics.get('Prec', 0):.3f}")
+            st.metric("Precisión", f"{metrics.get('Prec', 0):.3f}", help="Proporción de predicciones de riesgo que son correctas.")
         with m4:
-            st.metric("F1", f"{metrics.get('F1', 0):.3f}")
+            st.metric("F1", f"{metrics.get('F1', 0):.3f}", help="Media armónica entre Recall y Precisión (balance entre ambas).")
 
         if success["prev_record"] is not None:
             st.markdown("#### Comparación con modelo anterior")
@@ -1337,7 +1371,11 @@ def render_prediction():
         )
         return
 
-    record, artifact = load_model_with_artifact(project_slug, checkpoint_slug, model_id)
+    try:
+        record, artifact = load_model_with_artifact(project_slug, checkpoint_slug, model_id)
+    except (FileNotFoundError, Exception) as e:
+        st.error(f"No se pudo cargar el modelo. El archivo puede estar dañado o eliminado. Error: {e}")
+        return
     schema = artifact["feature_schema"]
 
     st.markdown(
@@ -1356,8 +1394,12 @@ def render_prediction():
         help="El archivo debe contener las mismas columnas de features que el dataset de entrenamiento.",
     )
     if uploaded is not None:
-        st.session_state.prediction_dataset = load_uploaded_dataset(uploaded)
-        st.session_state.prediction_dataset_name = uploaded.name
+        try:
+            st.session_state.prediction_dataset = load_uploaded_dataset(uploaded)
+            st.session_state.prediction_dataset_name = uploaded.name
+        except ValueError as e:
+            st.error(f"Error al cargar el archivo: {e}")
+            return
 
     if st.session_state.prediction_dataset is None:
         st.caption("Carga un archivo CSV o Excel para continuar.")
@@ -1558,19 +1600,19 @@ def render_dashboard():
         st.markdown("</div>", unsafe_allow_html=True)
 
     with tab_individual:
-        option_map = {f"{row['id']} — {row['name']}": row["student_key"] for _, row in df.iterrows()}
-        labels = list(option_map.keys())
+        option_map = {row["student_key"]: f"{row['id']} — {row['name']}" for _, row in df.iterrows()}
+        labels = list(option_map.values())
         if not labels:
             st.info("No hay estudiantes en esta predicción.")
         else:
-            if st.session_state.selected_student_key not in option_map.values():
-                st.session_state.selected_student_key = option_map[labels[0]]
+            if st.session_state.selected_student_key not in option_map.keys():
+                st.session_state.selected_student_key = list(option_map.keys())[0]
             selected_label = st.selectbox(
                 "Selecciona un estudiante",
                 labels,
-                index=list(option_map.values()).index(st.session_state.selected_student_key),
+                index=list(option_map.keys()).index(st.session_state.selected_student_key),
             )
-            selected_key = option_map[selected_label]
+            selected_key = next((k for k, v in option_map.items() if v == selected_label), list(option_map.keys())[0])
             st.session_state.selected_student_key = selected_key
             student = df.loc[df["student_key"] == selected_key].iloc[0]
             factors = top_student_factors(artifact, df, student.name)
@@ -1682,13 +1724,13 @@ def render_models():
     # Métricas
     m1, m2, m3, m4 = st.columns(4)
     with m1:
-        st.metric("AUC", f"{record.metrics.get('AUC', 0):.3f}")
+        st.metric("AUC", f"{record.metrics.get('AUC', 0):.3f}", help="Área bajo la curva ROC (0-1). Mide discriminación global del modelo.")
     with m2:
-        st.metric("Recall", f"{record.metrics.get('Recall', 0):.3f}")
+        st.metric("Recall", f"{record.metrics.get('Recall', 0):.3f}", help="Proporción de estudiantes en riesgo correctamente identificados.")
     with m3:
-        st.metric("Precisión", f"{record.metrics.get('Prec', 0):.3f}")
+        st.metric("Precisión", f"{record.metrics.get('Prec', 0):.3f}", help="Proporción de predicciones de riesgo que son correctas.")
     with m4:
-        st.metric("F1", f"{record.metrics.get('F1', 0):.3f}")
+        st.metric("F1", f"{record.metrics.get('F1', 0):.3f}", help="Media armónica entre Recall y Precisión (balance entre ambas).")
 
     overview_tab, config_tab, data_tab = st.tabs(["Resumen", "Configuración", "Predicciones"])
 
@@ -1809,8 +1851,9 @@ def render_export():
     st.dataframe(export_df.head(20), use_container_width=True, hide_index=True)
 
     col1, col2 = st.columns(2)
+    payload_key = _payload_key(project_slug, checkpoint_slug, model_id)
     with col1:
-        excel_bytes = dataframe_to_excel_bytes(export_df)
+        excel_bytes = _cached_excel_bytes(payload_key, str(hash(tuple(export_df.index))))
         excel_clicked = st.download_button(
             "Descargar Excel",
             data=excel_bytes,
@@ -1819,10 +1862,11 @@ def render_export():
             use_container_width=True,
         )
     with col2:
-        pdf_bytes = summary_pdf_bytes(
-            export_df,
-            title="Reporte SAT",
-            subtitle=f"{project.name} · {checkpoint.name}",
+        pdf_bytes = _cached_pdf_bytes(
+            payload_key,
+            str(hash(tuple(export_df.index))),
+            "Reporte SAT",
+            f"{project.name} · {checkpoint.name}",
         )
         pdf_clicked = st.download_button(
             "Generar PDF",

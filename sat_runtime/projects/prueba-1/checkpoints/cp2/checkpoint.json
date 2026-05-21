@@ -1,0 +1,24 @@
+{
+  "checkpoint_id": "7d9c77447b834f67b56424f5f8a7cc3a",
+  "project_id": "367dc1cb44e84abbb4702e40bf232389",
+  "slug": "cp2",
+  "name": "CP2",
+  "description": "",
+  "dataset_ref": "curso_desercion_cp2_train.csv",
+  "id_column": "id_estudiante",
+  "name_column": "nombre",
+  "target_column": "reprobo",
+  "numeric_features": [
+    "parcial_1",
+    "parcial_2",
+    "engagement_hasta_p1",
+    "engagement_hasta_p2",
+    "promedio_ams",
+    "promedio_quices"
+  ],
+  "categorical_features": [
+    "era"
+  ],
+  "created_at": "2026-05-19T18:49:29",
+  "updated_at": "2026-05-19T18:53:13"
+}
